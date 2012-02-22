@@ -1,0 +1,11 @@
+[pgqadm]
+job_name = musicbrainz_ticker
+db = dbname=musicbrainz user=postgres
+
+# how often to run maintenance [seconds]
+maint_delay = 600
+
+# how often to check for activity [seconds]
+loop_delay = 0.1
+logfile = /var/log/pgq/%(job_name)s.log
+pidfile = /var/log/pgq/%(job_name)s.pid
