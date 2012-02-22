@@ -21,7 +21,7 @@ GetOptions ("user=s" => \$db_user,
     or pod2usage();
 pod2usage(-verbose => 2) if $opt_help;
 
-my $dbh = DBIx::Simple->connect('dbi:Pg:dbname=musicbrainz', 'musicbrainz');
+my $dbh = DBIx::Simple->connect("dbi:Pg:dbname=$db_name", $db_user);
 my $json = JSON::Any->new( utf8 => 1 );
 
 sub log_info (&) {
