@@ -20,4 +20,5 @@ You will need:
      database.
   4. Run `pgqadm.py /path/to/musicbrainz.ini ticker -d` to start the ticker
   5. Run the `install.sql` file in this project against your MusicBrainz database.
-  6. Run `caa-indexer`. Run with `--help` for options.
+  6. Install dependencies with `carton install`
+  7. Run `caa-indexer` as `carton exec -Ilib -- ./caa-indexer`. Run with `--help` for options.
