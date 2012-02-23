@@ -13,7 +13,9 @@ You will need:
 * pgq installed:
 
   1. Grab skytools from http://skytools.projects.postgresql.org/ and install it
-     with the normal `configure`, `make`, `make install` trio.
+     with the normal `configure`, `make`, `make install` trio. If you are
+     running Ubuntu, simply install the `skytools` package
+     (`sudo apt-get install skytools`).
   2. Create a musicbrainz.ini file somewhere. See musicbrainz.ini.example for
      how this could look.
   3. Run `pgqadm.py /path/to/musicbrainz.ini install` to install PGQ into the
