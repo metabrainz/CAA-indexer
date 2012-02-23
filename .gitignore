@@ -1,2 +1,7 @@
 /inc
 /local
+MYMETA.yml
+MYMETA.json
+META.yml
+/.carton
+Makefile
