@@ -16,6 +16,8 @@ You will need:
      with the normal `configure`, `make`, `make install` trio.
   2. Create a musicbrainz.ini file somewhere. See musicbrainz.ini.example for
      how this could look.
-  3. Run `pgqadm.pg /path/to/musicbrainz.ini ticker -d` to start the ticker
-  4. Run the `install.sql` file in this project against your MusicBrainz database.
-  5. Run `caa-indexer`. Run with `--help` for options.
+  3. Run `pgqadm.py /path/to/musicbrainz.ini install` to install PGQ into the
+     database.
+  4. Run `pgqadm.py /path/to/musicbrainz.ini ticker -d` to start the ticker
+  5. Run the `install.sql` file in this project against your MusicBrainz database.
+  6. Run `caa-indexer`. Run with `--help` for options.
