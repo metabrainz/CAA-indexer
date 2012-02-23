@@ -196,17 +196,25 @@ caa-indexer
 
 =over 4
 
-=item verbose
+=item --verbose
 
 Run in verbose mode, showing detailed logging.
 
-=item db
+=item --db
 
 The name of the database to connect to poll for Cover Art Archive events.
 
-=item user
+=item --user
 
 The user name to use when connecting to the database.
+
+=item --public
+
+Your Internet Archive public key
+
+=item --private
+
+Your Internet Archive private key
 
 =back
 
