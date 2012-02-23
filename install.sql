@@ -59,8 +59,4 @@ CREATE TRIGGER caa_reindex AFTER UPDATE OR INSERT OR DELETE
 ON cover_art_archive.cover_art FOR EACH ROW
 EXECUTE PROCEDURE reindex_caa();
 
-CREATE TRIGGER caa_reindex AFTER UPDATE OR INSERT OR DELETE
-ON cover_art_archive.release FOR EACH ROW
-EXECUTE PROCEDURE reindex_caa();
-
 COMMIT;

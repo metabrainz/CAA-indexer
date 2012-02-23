@@ -100,11 +100,8 @@ sub index_release {
                     edit => $_->{edit}
                 }, $dbh->query(
                     'SELECT *,
-                       (release.front_image = cover_art.id) AS is_front,
-                       (release.back_image = cover_art.id) AS is_back,
                        (edit.close_time IS NOT NULL) AS approved
                      FROM cover_art_archive.cover_art
-                     JOIN cover_art_archive.release ON release.release = cover_art.release
                      JOIN musicbrainz.edit ON edit.id = cover_art.edit
                      WHERE cover_art.release = ?
                      ORDER BY ordering',
