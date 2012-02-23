@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION reindex_caa() RETURNS trigger AS $$
         -- coalesce because this also runs on delete
         PERFORM pgq.insert_event('CoverArtIndex', 'index',
                  (SELECT gid FROM musicbrainz.release
-                  WHERE release = coalesce(NEW.release, OLD.release))::text);
+                  WHERE id = coalesce(NEW.release, OLD.release))::text);
         RETURN NULL;
     END;
 $$ LANGUAGE 'plpgsql';

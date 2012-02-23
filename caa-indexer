@@ -3,26 +3,46 @@
 use strict;
 use warnings;
 
+use CoverArtArchive::IAS3Request;
 use DBIx::Simple;
 use Getopt::Long;
 use JSON::Any;
+use LWP::UserAgent;
+use Moose::Util qw( ensure_all_roles );
+use Net::Amazon::S3;
+use Net::Amazon::S3::HTTPRequest;
+use Net::Amazon::S3::Request::PutObject;
 use Pod::Usage;
 use Try::Tiny;
+
+Net::Amazon::S3::HTTPRequest->meta->make_mutable;
+ensure_all_roles('Net::Amazon::S3::HTTPRequest', 'CoverArtArchive::IAS3Request');
 
 my $verbose = 0;
 my $db_name = 'musicbrainz';
 my $db_user = 'musicbrainz';
 my $opt_help;
+my $access_key;
+my $secret_access_key;
 
 GetOptions ("user=s" => \$db_user,
             "db=s"   => \$db_name,
             "verbose"  => \$verbose,
-            "help|?" => \$opt_help)
+            "help|?" => \$opt_help,
+            "public=s" => \$access_key,
+            "private=s" => \$secret_access_key,
+        )
     or pod2usage();
 pod2usage(-verbose => 2) if $opt_help;
 
+my $lwp = LWP::UserAgent->new;
 my $dbh = DBIx::Simple->connect("dbi:Pg:dbname=$db_name", $db_user);
 my $json = JSON::Any->new( utf8 => 1 );
+
+my $s3 = Net::Amazon::S3->new(
+    aws_access_key_id     => $access_key,
+    aws_secret_access_key => $secret_access_key
+);
 
 sub log_info (&) {
     return unless $verbose;
@@ -68,15 +88,15 @@ sub index_release {
                              WHERE cover_art_type.id = ?',
                             $_->{id})->flat
                     ],
-                    front => $_->{is_front} ? 'true' : 'false',
-                    back => $_->{is_back} ? 'true' : 'false',
+                    front => $_->{is_front} ? JSON::Any->true : JSON::Any->false,
+                    back => $_->{is_back} ? JSON::Any->true : JSON::Any->false,
                     comment => $_->{comment},
                     image => $_->{url},
                     thumbnails => {
                         small => thumbnail_url($_->{url}, 250),
                         large => thumbnail_url($_->{url}, 500),
                     },
-                    approved => $_->{approved} ? 'true' : 'false',
+                    approved => $_->{approved} ? JSON::Any->true : JSON::Any->false,
                     edit => $_->{edit}
                 }, $dbh->query(
                     'SELECT *,
@@ -106,6 +126,22 @@ sub index_release {
         });
 
         log_info { "Produced %s", $json };
+
+        my $res = $lwp->request(
+            Net::Amazon::S3::Request::PutObject->new(
+                s3      => $s3,
+                bucket  => 'mbid-' . $release->{gid},
+                key     => 'index.json',
+                value => $json
+            )->http_request
+        );
+
+        if ($res->is_success) {
+            log_info { "Upload of index.json succeeded" };
+        }
+        else {
+            die "Upload of index.json failed: " . $res->decoded_content;
+        }
     }
     # 2. The release has been merged into another release.
     elsif ($release && $release->{gid} ne $release_gid) {
