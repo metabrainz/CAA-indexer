@@ -91,15 +91,15 @@ sub index_release {
                     front => $_->{is_front} ? JSON::Any->true : JSON::Any->false,
                     back => $_->{is_back} ? JSON::Any->true : JSON::Any->false,
                     comment => $_->{comment},
-                    image => $_->{url},
+                    image => image_url($release->{gid}, $_->{id}),
                     thumbnails => {
-                        small => thumbnail_url($_->{url}, 250),
-                        large => thumbnail_url($_->{url}, 500),
+                        small => image_url($release->{gid}, $_->{id}, 250),
+                        large => image_url($release->{gid}, $_->{id}, 500),
                     },
                     approved => $_->{approved} ? JSON::Any->true : JSON::Any->false,
                     edit => $_->{edit}
                 }, $dbh->query(
-                    'SELECT *,
+                    'SELECT cover_art.*,
                        (edit.close_time IS NOT NULL) AS approved
                      FROM cover_art_archive.cover_art
                      JOIN musicbrainz.edit ON edit.id = cover_art.edit
@@ -179,10 +179,11 @@ while(1) {
     }
 }
 
-sub thumbnail_url {
-    my ($url, $size) = @_;
-    $url =~ s/^(.*)\.([^\.]+)$/$1-$size.$2/;
-    return $url;
+sub image_url {
+    my ($mbid, $id, $size) = @_;
+    my $suffix = defined($size) ? "-$size" : '';
+
+    return "http://coverartarchive.org/release/$mbid/$id$suffix.jpg";
 }
 
 __END__
