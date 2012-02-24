@@ -11,8 +11,8 @@ CREATE OR REPLACE FUNCTION reindex_release() RETURNS trigger AS $$
     BEGIN
         SELECT gid INTO release_mbid
         FROM musicbrainz.release r
-        JOIN cover_art_archive.release caa_r ON r.id = caa_r.release
-        WHERE id = NEW.id;
+        JOIN cover_art_archive.cover_art caa_r ON r.id = caa_r.release
+        WHERE r.id = NEW.id;
 
         IF FOUND THEN
             PERFORM pgq.insert_event('CoverArtIndex', 'index', release_mbid::text);
