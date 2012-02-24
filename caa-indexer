@@ -129,7 +129,10 @@ sub index_release {
                 s3      => $s3,
                 bucket  => 'mbid-' . $release->{gid},
                 key     => 'index.json',
-                value => $json
+                value   => $json,
+                headers => {
+                    'x-archive-meta-collection' => 'coverartarchive',
+                }
             )->http_request
         );
 
