@@ -3,15 +3,18 @@
 use strict;
 use warnings;
 
+use CoverArtArchive::Indexer;
+use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::IAS3Request;
 use DBIx::Simple;
 use Getopt::Long;
-use JSON::Any;
+use Log::Contextual::SimpleLogger;
+use Log::Contextual qw( :log ),
+   -logger => Log::Contextual::SimpleLogger->new({ levels_upto => 'trace' });
 use LWP::UserAgent;
 use Moose::Util qw( ensure_all_roles );
 use Net::Amazon::S3;
 use Net::Amazon::S3::HTTPRequest;
-use Net::Amazon::S3::Request::PutObject;
 use Pod::Usage;
 use Try::Tiny;
 
@@ -35,159 +38,16 @@ GetOptions ("user=s" => \$db_user,
     or pod2usage();
 pod2usage(-verbose => 2) if $opt_help;
 
-my $lwp = LWP::UserAgent->new;
-my $dbh = DBIx::Simple->connect("dbi:Pg:dbname=$db_name", $db_user);
-my $json = JSON::Any->new( utf8 => 1 );
-
-my $s3 = Net::Amazon::S3->new(
-    aws_access_key_id     => $access_key,
-    aws_secret_access_key => $secret_access_key
-);
-
-sub log_info (&) {
-    return unless $verbose;
-    my ($fmt, @args) = shift->();
-    printf STDERR "%s INFO $fmt\n", scalar(localtime), @args;
-}
-
-sub log_error (&) {
-    my ($fmt, @args) = shift->();
-    printf STDERR "%s ERROR $fmt\n", scalar(localtime), @args;
-}
-
-sub index_release {
-    my ($release_gid) = @_;
-
-    my $release = $dbh->query(
-        'SELECT name.name, release.barcode, ac_name.name artist, release.gid, release.id
-         FROM musicbrainz.release
-         JOIN musicbrainz.release_name name ON name.id = release.name
-         JOIN musicbrainz.artist_credit ON artist_credit.id = release.artist_credit
-         JOIN musicbrainz.artist_name ac_name ON ac_name.id = artist_credit.name
-         WHERE release.id IN (
-             SELECT new_id FROM musicbrainz.release_gid_redirect
-             WHERE gid = ?
-             UNION
-             SELECT id FROM musicbrainz.release
-             WHERE gid = ?
-         )',
-        $release_gid, $release_gid
-    )->hash;
-
-    # There are 3 possibilities
-    # 1. The release has been changed, we only need to reindex
-    if ($release && $release->{gid} eq $release_gid) {
-        my $json = $json->objToJson({
-            images => [
-                map +{
-                    types => [
-                        $dbh->query(
-                            'SELECT art_type.name
-                             FROM cover_art_archive.cover_art_type
-                             JOIN cover_art_archive.art_type ON cover_art_type.type_id = art_type.id
-                             WHERE cover_art_type.id = ?',
-                            $_->{id})->flat
-                    ],
-                    front => $_->{is_front} ? JSON::Any->true : JSON::Any->false,
-                    back => $_->{is_back} ? JSON::Any->true : JSON::Any->false,
-                    comment => $_->{comment},
-                    image => image_url($release->{gid}, $_->{id}),
-                    thumbnails => {
-                        small => image_url($release->{gid}, $_->{id}, 250),
-                        large => image_url($release->{gid}, $_->{id}, 500),
-                    },
-                    approved => $_->{approved} ? JSON::Any->true : JSON::Any->false,
-                    edit => $_->{edit}
-                }, $dbh->query(
-                    'SELECT cover_art.*,
-                       (edit.close_time IS NOT NULL) AS approved
-                     FROM cover_art_archive.cover_art
-                     JOIN musicbrainz.edit ON edit.id = cover_art.edit
-                     WHERE cover_art.release = ?
-                     ORDER BY ordering',
-                    $release->{id}
-                )->hashes
-            ],
-            release => {
-                title => $release->{name},
-                artist => $release->{artist},
-                barcode => $release->{barcode},
-                catalognumbers => [
-                    $dbh->query(
-                        'SELECT DISTINCT catalog_number
-                         FROM musicbrainz.release_label
-                         WHERE catalog_number IS NOT NULL AND release = ?',
-                        $release->{id})->flat
-                    ]
-            }
-        });
-
-        log_info { "Produced %s", $json };
-
-        my $res = $lwp->request(
-            Net::Amazon::S3::Request::PutObject->new(
-                s3      => $s3,
-                bucket  => 'mbid-' . $release->{gid},
-                key     => 'index.json',
-                value   => $json,
-                headers => {
-                    'x-archive-meta-collection' => 'coverartarchive',
-                }
-            )->http_request
-        );
-
-        if ($res->is_success) {
-            log_info { "Upload of index.json succeeded" };
-        }
-        else {
-            die "Upload of index.json failed: " . $res->decoded_content;
-        }
-    }
-    # 2. The release has been merged into another release.
-    elsif ($release && $release->{gid} ne $release_gid) {
-        die "Merges are not yet supported";
-    }
-    # 3. The release has been entirely deleted, so everything should be removed
-    else {
-        die "Deleting releases is not yet supported";
-    }
-}
-
-while(1) {
-    if (my $batch_id = $dbh->query('SELECT pgq.next_batch(?, ?)', 'CoverArtIndex', 'CoverArtIndexer')->list) {
-        my @events = $dbh->query('SELECT * FROM pgq.get_batch_events(?)', $batch_id)->hashes;
-        log_info { "Refreshing %d releases", scalar(@events) };
-
-        for my $event (@events) {
-            if ($event->{ev_type} ne 'index') {
-                log_error { "Encountered an event that was not of ev_type 'index'. Marking as failed" };
-                $dbh->query('SELECT pgq.event_failed(?, ?, ?)', $batch_id, $event->{ev_id}, 'Unknown ev_type');
-                next;
-            }
-
-            try {
-                index_release($event->{ev_data});
-            }
-            catch {
-                log_error { "%s", $_ };
-                $dbh->query('SELECT pgq.event_failed(?, ?, ?)', $batch_id, $event->{ev_id}, $_);
-            };
-        }
-
-        $dbh->query('SELECT pgq.finish_batch(?)', $batch_id);
-    }
-    else {
-        log_info { "Nothing to do" };
-        sleep(10);
-    }
-}
-
-sub image_url {
-    my ($mbid, $id, $size) = @_;
-    my $suffix = defined($size) ? "-$size" : '';
-
-    return "http://coverartarchive.org/release/$mbid/$id$suffix.jpg";
-}
+CoverArtArchive::Indexer->new(
+    c => CoverArtArchive::Indexer::Context->new(
+        lwp => LWP::UserAgent->new,
+        dbh => DBIx::Simple->connect("dbi:Pg:dbname=$db_name", $db_user),
+        s3 => Net::Amazon::S3->new(
+            aws_access_key_id     => $access_key,
+            aws_secret_access_key => $secret_access_key
+        )
+    )
+)->run;
 
 __END__
 

@@ -9,6 +9,7 @@ requires 'DBD::Pg';
 requires 'DBIx::Simple';
 requires 'Getopt::Long';
 requires 'JSON::Any';
+requires 'Log::Contextual';
 requires 'LWP::UserAgent';
 requires 'Net::Amazon::S3';
 requires 'Pod::Usage';
