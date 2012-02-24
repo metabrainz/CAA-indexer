@@ -55,7 +55,8 @@ sub handle_event {
                         large => image_url($release->{gid}, $_->{id}, 500),
                     },
                     approved => $_->{approved} ? JSON::Any->true : JSON::Any->false,
-                    edit => $_->{edit}
+                    edit => $_->{edit},
+                    id => $_->{id}
                 }, $self->dbh->query(
                     'SELECT cover_art.*,
                        (edit.close_time IS NOT NULL) AS approved
