@@ -47,10 +47,15 @@ EXECUTE PROCEDURE reindex_release_via_catno();
 
 CREATE OR REPLACE FUNCTION reindex_caa() RETURNS trigger AS $$
     BEGIN
-        -- coalesce because this also runs on delete
-        PERFORM pgq.insert_event('CoverArtIndex', 'index',
-                 (SELECT gid FROM musicbrainz.release
-                  WHERE id = coalesce(NEW.release, OLD.release))::text);
+        IF TG_OP = 'DELETE' THEN
+            PERFORM pgq.insert_event('CoverArtIndex', 'index',
+                     (SELECT gid FROM musicbrainz.release
+                      WHERE id = coalesce(OLD.release))::text);
+        ELSE
+            PERFORM pgq.insert_event('CoverArtIndex', 'index',
+                     (SELECT gid FROM musicbrainz.release
+                      WHERE id = coalesce(NEW.release))::text);
+        END IF;
         RETURN NULL;
     END;
 $$ LANGUAGE 'plpgsql';
@@ -58,5 +63,20 @@ $$ LANGUAGE 'plpgsql';
 CREATE TRIGGER caa_reindex AFTER UPDATE OR INSERT OR DELETE
 ON cover_art_archive.cover_art FOR EACH ROW
 EXECUTE PROCEDURE reindex_caa();
+
+CREATE OR REPLACE FUNCTION delete_artwork() RETURNS trigger AS $$
+    BEGIN
+        -- coalesce because this also runs on delete
+        PERFORM pgq.insert_event('CoverArtIndex', 'delete',
+                 (SELECT OLD.id || E'\n' || release.gid
+                  FROM musicbrainz.release
+                  WHERE id = OLD.release)::text);
+        RETURN NULL;
+    END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER caa_delete AFTER DELETE
+ON cover_art_archive.cover_art FOR EACH ROW
+EXECUTE PROCEDURE delete_artwork();
 
 COMMIT;
