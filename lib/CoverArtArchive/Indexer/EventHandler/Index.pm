@@ -79,39 +79,53 @@ sub handle_event {
                     $release->{id}
                 )->hashes
             ],
-            release => {
-                title => $release->{name},
-                artist => $release->{artist},
-                barcode => $release->{barcode},
-                catalognumbers => [
-                    $self->dbh->query(
-                        'SELECT DISTINCT catalog_number
-                         FROM musicbrainz.release_label
-                         WHERE catalog_number IS NOT NULL AND release = ?',
-                        $release->{id})->flat
-                    ]
-            }
+            release => 'http://musicbrainz.org/release/' . $release->{gid}
         });
 
         log_debug { "Produced $json" };
 
-        my $res = $self->lwp->request(
-            Net::Amazon::S3::Request::PutObject->new(
-                s3      => $self->s3,
-                bucket  => 'mbid-' . $release->{gid},
-                key     => 'index.json',
-                value   => $json,
-                headers => {
-                    'x-archive-meta-collection' => 'coverartarchive',
-                }
-            )->http_request
-        );
+        {
+            my $res = $self->lwp->request(
+                Net::Amazon::S3::Request::PutObject->new(
+                    s3      => $self->s3,
+                    bucket  => 'mbid-' . $release->{gid},
+                    key     => 'index.json',
+                    value   => $json,
+                    headers => {
+                        'x-archive-meta-collection' => 'coverartarchive',
+                    }
+                )->http_request
+            );
 
-        if ($res->is_success) {
-            log_info { "Upload of index.json succeeded" };
+            if ($res->is_success) {
+                log_info { "Upload of index.json succeeded" };
+            }
+            else {
+                die "Upload of index.json failed: " . $res->decoded_content;
+            }
         }
-        else {
-            die "Upload of index.json failed: " . $res->decoded_content;
+
+        {
+            my $res = $self->lwp->request(
+                Net::Amazon::S3::Request::PutObject->new(
+                    s3      => $self->s3,
+                    bucket  => 'mbid-' . $release->{gid},
+                    key     => 'metadata.xml',
+                    value   => $self->lwp->get(
+                        sprintf('http://musicbrainz.org/ws/2/%s?inc=artists', $release->{gid})
+                    )->decoded_content,
+                    headers => {
+                        'x-archive-meta-collection' => 'coverartarchive',
+                    }
+                )->http_request
+            );
+
+            if ($res->is_success) {
+                log_info { "Upload of metadata.xml succeeded" };
+            }
+            else {
+                die "Upload of metadata.xml failed: " . $res->decoded_content;
+            }
         }
     }
     # 2. The release has been merged into another release.
