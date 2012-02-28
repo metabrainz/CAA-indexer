@@ -59,7 +59,19 @@ sub handle_event {
                     id => $_->{id}
                 }, $self->dbh->query(
                     'SELECT cover_art.*,
-                       (edit.close_time IS NOT NULL) AS approved
+                       (edit.close_time IS NOT NULL) AS approved,
+                       (cover_art.id = (SELECT id FROM cover_art_archive.cover_art_type
+                              JOIN cover_art_archive.cover_art ca_front USING (id)
+                              WHERE ca_front.release = cover_art.release
+                              AND type_id = 1
+                              ORDER BY ca_front.ordering
+                              LIMIT 1)) AS is_front,
+                       (cover_art.id = (SELECT id FROM cover_art_archive.cover_art_type
+                              JOIN cover_art_archive.cover_art ca_front USING (id)
+                              WHERE ca_front.release = cover_art.release
+                              AND type_id = 2
+                              ORDER BY ca_front.ordering
+                              LIMIT 1)) AS is_back
                      FROM cover_art_archive.cover_art
                      JOIN musicbrainz.edit ON edit.id = cover_art.edit
                      WHERE cover_art.release = ?
