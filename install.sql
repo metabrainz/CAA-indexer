@@ -25,6 +25,27 @@ CREATE TRIGGER caa_reindex AFTER UPDATE OR INSERT
 ON musicbrainz.release FOR EACH ROW
 EXECUTE PROCEDURE reindex_release();
 
+CREATE OR REPLACE FUNCTION reindex_artist() RETURNS trigger AS $$
+    BEGIN
+        -- Short circuit if the name hasn't changed
+        IF NEW.name = OLD.name AND NEW.sort_name = OLD.sort_name THEN
+            RETURN NULL;
+        END IF;
+
+        PERFORM pgq.insert_event('CoverArtIndex', 'index', r.gid::text)
+        FROM musicbrainz.release r
+        JOIN cover_art_archive.cover_art caa_r ON r.id = caa_r.release
+        JOIN musicbrainz.artist_credit_name acn ON r.artist_credit = acn.artist_credit
+        WHERE acn.artist = NEW.id;
+
+        RETURN NULL;
+    END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER caa_reindex AFTER UPDATE
+ON musicbrainz.artist FOR EACH ROW
+EXECUTE PROCEDURE reindex_artist();
+
 CREATE OR REPLACE FUNCTION reindex_release_via_catno() RETURNS trigger AS $$
     DECLARE
         release_mbid UUID;
