@@ -85,6 +85,28 @@ CREATE TRIGGER caa_reindex AFTER UPDATE OR INSERT OR DELETE
 ON cover_art_archive.cover_art FOR EACH ROW
 EXECUTE PROCEDURE reindex_caa();
 
+CREATE OR REPLACE FUNCTION caa_move() RETURNS trigger AS $$
+    BEGIN
+        IF OLD.release != NEW.release THEN
+            PERFORM pgq.insert_event('CoverArtIndex', 'move',
+                      (SELECT ca.id || E'\n' ||
+                              old_release.gid || E'\n' ||
+                              new_release.gid || E'\n'
+                       FROM cover_art_archive.cover_art ca,
+                         musicbrainz.release old_release,
+                         musicbrainz.release new_release
+                       WHERE ca.id = OLD.id
+                       AND old_release.id = OLD.release
+                       AND new_release.id = NEW.release));
+        END IF;
+        RETURN NEW;
+    END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER caa_move BEFORE UPDATE
+ON cover_art_archive.cover_art FOR EACH ROW
+EXECUTE PROCEDURE caa_move();
+
 CREATE OR REPLACE FUNCTION delete_artwork() RETURNS trigger AS $$
     BEGIN
         -- coalesce because this also runs on delete

@@ -3,6 +3,7 @@ use Moose;
 
 use CoverArtArchive::Indexer::EventHandler::Delete;
 use CoverArtArchive::Indexer::EventHandler::Index;
+use CoverArtArchive::Indexer::EventHandler::Move;
 use Log::Contextual qw( :log );
 use Try::Tiny;
 
@@ -20,6 +21,7 @@ has event_handlers => (
             } qw(
                 CoverArtArchive::Indexer::EventHandler::Delete
                 CoverArtArchive::Indexer::EventHandler::Index
+                CoverArtArchive::Indexer::EventHandler::Move
             )
         }
     },
@@ -45,6 +47,7 @@ sub run {
                     next;
                 }
                 else {
+                    log_trace { sprintf 'Running event handler for event type %s', $event->{ev_type} }
                     try {
                         $evh->handle_event($event);
                     }

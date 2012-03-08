@@ -32,9 +32,7 @@ sub handle_event {
         $release_gid, $release_gid
     )->hash;
 
-    # There are 3 possibilities
-    # 1. The release has been changed, we only need to reindex
-    if ($release && $release->{gid} eq $release_gid) {
+    if ($release) {
         my $json = $json->objToJson({
             images => [
                 map +{
@@ -93,6 +91,7 @@ sub handle_event {
                     value   => $json,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
+                        "x-archive-auto-make-bucket" => 1,
                     }
                 )->http_request
             );
@@ -116,6 +115,7 @@ sub handle_event {
                     )->decoded_content,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
+                        "x-archive-auto-make-bucket" => 1,
                     }
                 )->http_request
             );
@@ -128,13 +128,8 @@ sub handle_event {
             }
         }
     }
-    # 2. The release has been merged into another release.
-    elsif ($release && $release->{gid} ne $release_gid) {
-        die "Merges are not yet supported";
-    }
-    # 3. The release has been entirely deleted, so everything should be removed
     else {
-        die "Deleting releases is not yet supported";
+        log_debug { "Release $release_gid does not exist, skipping indexing" };
     }
 }
 
