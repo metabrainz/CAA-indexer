@@ -818,6 +818,65 @@
          },
          "version" : "1.4"
       },
+      "Config::Tiny" : {
+         "dist" : "Config-Tiny-2.14",
+         "module" : "Config::Tiny",
+         "mymeta" : {
+            "abstract" : "Read/Write .ini style files with as little code as possible",
+            "author" : [
+               "Adam Kennedy <adamk@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.120530, CPAN::Meta::Converter version 2.120351",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Config-Tiny",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.47"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "0"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "perl" : "5.004"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "url" : "http://svn.ali.as/cpan/trunk/Config-Tiny"
+               }
+            },
+            "version" : "2.14"
+         },
+         "name" : "Config::Tiny",
+         "pathname" : "A/AD/ADAMK/Config-Tiny-2.14.tar.gz",
+         "provides" : {
+            "Config::Tiny" : {
+               "file" : "Config/Tiny.pm",
+               "version" : "2.14"
+            }
+         },
+         "version" : "2.14"
+      },
       "DBD::Pg" : {
          "dist" : "DBD-Pg-2.18.1",
          "module" : "DBD::Pg",

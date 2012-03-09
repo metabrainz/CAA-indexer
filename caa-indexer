@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use Config::Tiny;
 use CoverArtArchive::Indexer;
 use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::IAS3Request;
@@ -21,13 +22,22 @@ use Try::Tiny;
 Net::Amazon::S3::HTTPRequest->meta->make_mutable;
 ensure_all_roles('Net::Amazon::S3::HTTPRequest', 'CoverArtArchive::IAS3Request');
 
+my $config_file = !@ARGV || $_[0] =~ /^-/
+        ? 'config.ini'
+        : shift();
+
+my $config = Config::Tiny->read($config_file);
+
+log_warn{ "Could not find a config file (wanted $config_file), supply command line arguments or provide a config.ini file" }
+    unless -f $config_file;
+
 my $verbose = 0;
-my $db_name = 'musicbrainz';
-my $db_user = 'musicbrainz';
-my $db_host = 'localhost';
+my $db_name = $config->{database}{database};
+my $db_user = $config->{database}{user};
+my $db_host = $config->{database}{host};
 my $opt_help;
-my $access_key;
-my $secret_access_key;
+my $access_key = $config->{caa}{public_key};
+my $secret_access_key = $config->{caa}{private_key};
 
 GetOptions ("user=s" => \$db_user,
             "db=s"   => \$db_name,

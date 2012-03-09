@@ -5,6 +5,7 @@ use inc::Module::Install;
 name 'caa-indexer';
 version '1.0';
 
+requires 'Config::Tiny';
 requires 'DBD::Pg';
 requires 'DBIx::Simple';
 requires 'Getopt::Long';
