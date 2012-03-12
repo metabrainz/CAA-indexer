@@ -116,6 +116,7 @@ sub handle_event {
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
                         "x-archive-auto-make-bucket" => 1,
+                        'Content-Type' => 'application/xml; charset=utf-8',
                     }
                 )->http_request
             );
