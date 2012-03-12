@@ -112,7 +112,7 @@ sub handle_event {
                     key     => 'metadata.xml',
                     value   => $self->lwp->get(
                         sprintf('http://musicbrainz.org/ws/2/release/%s?inc=artists', $release->{gid})
-                    )->decoded_content,
+                    )->content,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
                         "x-archive-auto-make-bucket" => 1,
