@@ -3,6 +3,7 @@ host = 0.0.0.0
 port = 5432
 user = musicbrainz
 database = musicbrainz
+; password = password
 
 [caa]
 public_key = {public key here}
