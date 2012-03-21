@@ -88,7 +88,7 @@ sub handle_event {
                 Net::Amazon::S3::Request::PutObject->new(
                     s3      => $self->s3,
                     bucket  => 'mbid-' . $release->{gid},
-                    key     => 'mbid-' . $release->{gid} . '-mb_metadata.xml',
+                    key     => 'mbid-' . $release->{gid} . '_mb_metadata.xml',
                     value   => $self->lwp->get(
                         sprintf('http://musicbrainz.org/ws/2/release/%s?inc=artists', $release->{gid})
                     )->content,
