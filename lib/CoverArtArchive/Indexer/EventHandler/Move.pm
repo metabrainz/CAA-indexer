@@ -22,7 +22,7 @@ sub handle_event {
             bucket  => "mbid-$new_mbid",
             key     => join('-', 'mbid', $new_mbid, $id) . '.jpg',
             headers => {
-                'x-amz-copy-source' => "/ambid-$old_mbid/mbid-$old_mbid-$id.jpg",
+                'x-amz-copy-source' => "/mbid-$old_mbid/mbid-$old_mbid-$id.jpg",
                 "x-archive-auto-make-bucket" => 1,
                 "x-archive-meta-collection" => 'coverartarchive',
                 "x-archive-meta-mediatype" => 'images',
