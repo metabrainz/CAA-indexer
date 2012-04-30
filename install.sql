@@ -107,7 +107,7 @@ CREATE TRIGGER caa_move BEFORE UPDATE
 ON cover_art_archive.cover_art FOR EACH ROW
 EXECUTE PROCEDURE caa_move();
 
-CREATE OR REPLACE FUNCTION delete_artwork() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION delete_release() RETURNS trigger AS $$
     BEGIN
         PERFORM
           pgq.insert_event('CoverArtIndex', 'delete',
@@ -115,12 +115,17 @@ CREATE OR REPLACE FUNCTION delete_artwork() RETURNS trigger AS $$
         FROM cover_art_archive.cover_art
         WHERE release = OLD.id;
 
+        PERFORM pgq.insert_event('CoverArtIndex', 'delete',
+            ('index.json' || E'\n' || OLD.gid)::text)
+        FROM musicbrainz.release
+        WHERE release.id = OLD.id;
+
         RETURN OLD;
     END;
 $$ LANGUAGE 'plpgsql';
 
 CREATE TRIGGER caa_delete BEFORE DELETE
 ON musicbrainz.release FOR EACH ROW
-EXECUTE PROCEDURE delete_artwork();
+EXECUTE PROCEDURE delete_release();
 
 COMMIT;

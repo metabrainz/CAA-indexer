@@ -16,19 +16,21 @@ sub handle_event {
         die "Event does not contain sufficient data";
     }
 
+    my $key = $id eq 'index.json' ? $id : "mbid-$mbid-$id.jpg";
+
     my $req = Net::Amazon::S3::Request::DeleteObject->new(
         s3      => $self->s3,
         bucket  => "mbid-$mbid",
-        key     => "mbid-$mbid-$id.jpg",
+        key     => $key
     )->http_request;
 
     my $res = $self->lwp->request($req);
 
     if ($res->is_success) {
-        log_info { "Successfuly deleted $mbid/$id" };
+        log_info { "Successfuly deleted $mbid/$key" };
     }
     else {
-        die "Upload of index.json failed: " . $res->decoded_content;
+        die "Delete of $key failed: " . $res->decoded_content;
     }
 }
 
