@@ -35,7 +35,7 @@ sub handle_event {
         my $error = $xp->findnodes('.//Error/Resource')->string_value;
 
         if ($error && $error =~ /FATAL ERROR: The item you are trying to edit cannot be retrieved./) {
-            log_warning { "Apparently $mbid/$key has already been deleted!" };
+            log_warn { "Apparently $mbid/$key has already been deleted!" };
         }
         else {
             die "Delete of $key failed: " . $res->decoded_content;
