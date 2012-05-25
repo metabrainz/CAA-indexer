@@ -15,6 +15,7 @@ requires 'LWP::UserAgent';
 requires 'Net::Amazon::S3';
 requires 'Pod::Usage';
 requires 'Try::Tiny';
+requires 'XML::XPath';
 
 auto_install;
 WriteAll;

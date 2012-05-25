@@ -3,6 +3,7 @@ use Moose;
 
 use Log::Contextual qw( :log );
 use Net::Amazon::S3::Request::DeleteObject;
+use XML::XPath;
 
 with 'CoverArtArchive::Indexer::EventHandler';
 
@@ -30,7 +31,15 @@ sub handle_event {
         log_info { "Successfuly deleted $mbid/$key" };
     }
     else {
-        die "Delete of $key failed: " . $res->decoded_content;
+        my $xp = XML::XPath->new( xml => $res->decoded_content );
+        my $error = $xp->findnodes('.//Error/Resource')->string_value;
+
+        if ($error && $error =~ /FATAL ERROR: The item you are trying to edit cannot be retrieved./) {
+            log_warning { "Apparently $mbid/$key has already been deleted!" };
+        }
+        else {
+            die "Delete of $key failed: " . $res->decoded_content;
+        }
     }
 }
 
