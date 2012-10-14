@@ -7,7 +7,7 @@ should update the index file at the Internet Archive.
 
 You will need:
 
-* A MusicBrainz database. See the `INSTALL` document of the `musicbrainz-server`
+* A MusicBrainz database. See the `INSTALL.md` document of the `musicbrainz-server`
   project for more details.
 
 * pgq installed:
