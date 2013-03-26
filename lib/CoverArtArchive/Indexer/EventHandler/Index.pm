@@ -7,14 +7,12 @@ use Net::Amazon::S3::Request::PutObject;
 
 with 'CoverArtArchive::Indexer::EventHandler';
 
-sub _build_event_type { 'index' }
+sub queue { 'index' }
 
 my $json = JSON::Any->new( utf8 => 1 );
 
-sub handle_event {
-    my ($self, $event) = @_;
-
-    my $release_gid = $event->{ev_data};
+sub handle {
+    my ($self, $release_gid) = @_;
 
     my $release = $self->dbh->query(
         'SELECT name.name, release.barcode, ac_name.name artist, release.gid, release.id
