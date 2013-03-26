@@ -33,11 +33,16 @@ sub run {
     my $self = shift;
 
     # The main exchange for the CAA
-    $self->rabbitmq->declare_exchange( exchange => 'cover-art-archive', type => 'direct' );
+    $self->rabbitmq->declare_exchange(
+        exchange => 'cover-art-archive',
+        type => 'direct',
+        durable => 1
+    );
 
     # Messages arriving here will be delayed for 4-hours
     $self->rabbitmq->declare_queue(
         queue => 'cover-art-archive.retry',
+        durable => 1,
         arguments => {
             'x-message-ttl' => 4 * 60 * 60 * 1000, # 4 hours
             'x-dead-letter-exchange' => 'cover-art-archive'
@@ -46,19 +51,31 @@ sub run {
 
     # Declare a fanout exchange to enqueue retries.
     # Fanout allows us to preserve the routing key when we dead-letter back to the cover-art-archive exchange
-    $self->rabbitmq->declare_exchange( exchange => 'cover-art-archive.retry', type => 'fanout' );
+    $self->rabbitmq->declare_exchange(
+        exchange => 'cover-art-archive.retry',
+        type => 'fanout',
+        durable => 1
+    );
     $self->rabbitmq->bind_queue( exchange => 'cover-art-archive.retry', queue => 'cover-art-archive.retry' );
 
     # Messages sent here need manual intervention
-    $self->rabbitmq->declare_exchange( exchange => 'cover-art-archive.failed', type => 'fanout' );
-    $self->rabbitmq->declare_queue( queue => 'cover-art-archive.failed' );
+    $self->rabbitmq->declare_exchange(
+        exchange => 'cover-art-archive.failed',
+        type => 'fanout',
+        durable => 1
+    );
+    $self->rabbitmq->declare_queue(
+        queue => 'cover-art-archive.failed',
+        durable => 1
+    );
     $self->rabbitmq->bind_queue( queue => 'cover-art-archive.failed', exchange => 'cover-art-archive.failed' );
 
     for my $handler ($self->event_handlers) {
         my $queue = $handler->queue;
 
         $self->rabbitmq->declare_queue(
-            queue => "cover-art-archive.$queue", durable => 1
+            queue => "cover-art-archive.$queue",
+            durable => 1
         );
 
         $self->rabbitmq->bind_queue(
@@ -73,7 +90,7 @@ sub run {
             on_consume => sub {
                 my $delivery = shift;
                 my $tag = $delivery->{deliver}{method_frame}{delivery_tag};
-                my $boy = $delivery->{body}{payload};
+                my $body = $delivery->{body}{payload};
 
                 try {
                     $handler->handle($body);
@@ -92,7 +109,7 @@ sub run {
                         body => $body,
                         header => {
                             headers => {
-                                'mb-retries' => $attempt - 1,
+                                'mb-retries' => $retries_remaining - 1,
                                 'mb-exceptions' => [
                                     @{ $delivery->{header}{headers}{'mb-exceptions'} // [] },
                                     $_
