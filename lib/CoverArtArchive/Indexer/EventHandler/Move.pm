@@ -7,11 +7,11 @@ use Log::Contextual qw( :log );
 use Net::Amazon::S3::Request::DeleteObject;
 use Net::Amazon::S3::Request::PutObject;
 
-sub _build_event_type { 'move' }
+sub queue { 'move' }
 
-sub handle_event {
-    my ($self, $event) = @_;
-    my ($id, $old_mbid, $new_mbid) = split /\n/, $event->{ev_data};
+sub handle {
+    my ($self, $body) = @_;
+    my ($id, $old_mbid, $new_mbid) = split /\n/, $body;
 
     log_trace { "Copying from $old_mbid/$id to $new_mbid" };
 

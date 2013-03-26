@@ -16,5 +16,10 @@ has dbh => (
     required => 1
 );
 
+has rabbitmq => (
+    is => 'ro',
+    required => 1
+);
+
 __PACKAGE__->meta->make_immutable;
 1;
