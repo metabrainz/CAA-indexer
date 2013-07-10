@@ -38,7 +38,7 @@ sub handle {
                     front => $_->{is_front} ? JSON::Any->true : JSON::Any->false,
                     back => $_->{is_back} ? JSON::Any->true : JSON::Any->false,
                     comment => $_->{comment},
-                    image => image_url($release->{gid}, $_->{id}),
+                    image => image_url($release->{gid}, $_->{id}, $_->{suffix}),
                     thumbnails => {
                         small => image_url($release->{gid}, $_->{id}, 250),
                         large => image_url($release->{gid}, $_->{id}, 500),
@@ -47,9 +47,12 @@ sub handle {
                     edit => $_->{edit},
                     id => $_->{id}
                 }, $self->dbh->query(
-                    'SELECT * FROM cover_art_archive.index_listing
-                     WHERE release = ?
-                     ORDER BY ordering',
+                    'SELECT index_listing.*, image_type.suffix
+                       FROM cover_art_archive.index_listing
+                       JOIN cover_art_archive.image_type
+                         ON image_type.mime_type = index_listing.mime_type
+                      WHERE release = ?
+                      ORDER BY ordering',
                     $release->{id}
                 )->hashes
             ],
@@ -112,10 +115,11 @@ sub handle {
 }
 
 sub image_url {
-    my ($mbid, $id, $size) = @_;
-    my $suffix = defined($size) ? "-$size" : '';
+    my ($mbid, $id, $size, $suffix) = @_;
+    my $thumbnail = defined($size) ? "-$size" : '';
+    $suffix //= "jpg";
 
-    return "http://coverartarchive.org/release/$mbid/$id$suffix.jpg";
+    return "http://coverartarchive.org/release/$mbid/$id$thumbnail.$suffix";
 }
 
 1;
