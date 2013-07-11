@@ -51,12 +51,14 @@ GetOptions ("user=s" => \$db_user,
     or pod2usage();
 pod2usage(-verbose => 2) if $opt_help;
 
+my $dbh = DBIx::Simple->connect(
+    "dbi:Pg:host=$db_host;dbname=$db_name", $db_user, $db_pass)
+    or die DBIx::Simple->error;
+
 CoverArtArchive::Indexer->new(
     c => CoverArtArchive::Indexer::Context->new(
         lwp => LWP::UserAgent->new,
-        dbh => DBIx::Simple->connect("dbi:Pg:host=$db_host;dbname=$db_name",
-                                     $db_user,
-                                     $db_pass),
+        dbh => $dbh,
         s3 => Net::Amazon::S3->new(
             aws_access_key_id     => $access_key,
             aws_secret_access_key => $secret_access_key
