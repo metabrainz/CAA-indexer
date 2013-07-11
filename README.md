@@ -17,15 +17,32 @@ This roughly corresponds to:
 
         sudo apt-get install rabbitmq
 
-  2. Install dependencies:
 
-        carton install
+  2. Set up local::lib
 
-  3. Copy `config.ini.example` to `config.ini` and edit appropriately.
+        sudo apt-get install liblocal-lib-perl libmodule-install-perl
+        eval $(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)
+        cpan App::cpanminus
 
-  4. Run `caa-indexer`:
+        # The above will allow you install perl modules to ~/perl5.
+        # Copy the "eval ..." line to your ~/.bashrc or equivalent
+        # to ensure perl programs will be able to find these modules
+        # again when you start a new shell.
 
-        carton exec -Ilib -- ./caa-indexer
+  3. Install perl dependencies:
+
+        sudo apt-get install perl perl-modules libanyevent-perl    \
+          libconfig-tiny-perl libdbd-pgsql libdbix-simple-perl     \
+          libjson-any-perl liblog-contextual-perl libwww-perl      \
+          libnet-amazon-s3-perl libtry-tiny-perl libxml-xpath-perl
+
+        cpanm --installdeps .
+
+  4. Copy `config.ini.example` to `config.ini` and edit appropriately.
+
+  5. Run `caa-indexer`:
+
+        ./caa-indexer
 
      You will need to provide the public and private key, via the `--public=`
      and `--private=` options, respectively, or via the aforementioned
