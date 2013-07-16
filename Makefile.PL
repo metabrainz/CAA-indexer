@@ -17,5 +17,9 @@ requires 'Pod::Usage';
 requires 'Try::Tiny';
 requires 'XML::XPath';
 
+requires 'Test::More';
+requires 'Test::Mock::LWP::Dispatch';
+requires 'Test::MockObject';
+
 auto_install;
 WriteAll;
