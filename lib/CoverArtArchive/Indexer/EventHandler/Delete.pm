@@ -11,13 +11,16 @@ sub _build_event_type { 'delete' }
 
 sub handle_event {
     my ($self, $event) = @_;
-    my ($id, $mbid) = split /\n/, $event->{ev_data};
+
+    my ($id, $mbid, $suffix) = split /\n/, $event->{ev_data};
+
+    $suffix //= "jpg";
 
     if (!$id || !$mbid) {
         die "Event does not contain sufficient data";
     }
 
-    my $key = $id eq 'index.json' ? $id : "mbid-$mbid-$id.jpg";
+    my $key = $id eq 'index.json' ? $id : "mbid-$mbid-$id.$suffix";
 
     my $req = Net::Amazon::S3::Request::DeleteObject->new(
         s3      => $self->s3,

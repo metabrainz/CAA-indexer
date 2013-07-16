@@ -11,7 +11,10 @@ sub _build_event_type { 'move' }
 
 sub handle_event {
     my ($self, $event) = @_;
-    my ($id, $old_mbid, $new_mbid) = split /\n/, $event->{ev_data};
+
+    my ($id, $old_mbid, $new_mbid, $suffix) = split /\n/, $event->{ev_data};
+
+    $suffix //= "jpg";
 
     log_trace { "Copying from $old_mbid/$id to $new_mbid" };
 
@@ -20,9 +23,9 @@ sub handle_event {
         Net::Amazon::S3::Request::PutObject->new(
             s3      => $self->s3,
             bucket  => "mbid-$new_mbid",
-            key     => join('-', 'mbid', $new_mbid, $id) . '.jpg',
+            key     => join('-', 'mbid', $new_mbid, $id) . ".$suffix",
             headers => {
-                'x-amz-copy-source' => "/mbid-$old_mbid/mbid-$old_mbid-$id.jpg",
+                'x-amz-copy-source' => "/mbid-$old_mbid/mbid-$old_mbid-$id.$suffix",
                 "x-archive-auto-make-bucket" => 1,
                 "x-archive-meta-collection" => 'coverartarchive',
                 "x-archive-meta-mediatype" => 'images',
@@ -36,7 +39,7 @@ sub handle_event {
         Net::Amazon::S3::Request::DeleteObject->new(
             s3 => $self->s3,
             bucket => "mbid-$old_mbid",
-            key => "mbid-$old_mbid-$id.jpg"
+            key => "mbid-$old_mbid-$id.$suffix"
         )->http_request
     )
 }
