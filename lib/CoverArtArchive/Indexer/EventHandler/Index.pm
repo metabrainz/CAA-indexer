@@ -116,9 +116,9 @@ sub handle_event {
 
 sub image_url {
     my ($mbid, $id, $size, $extension) = @_;
-    my $size = defined($size) ? "-$size" : '';
+    my $urlsize = defined($size) ? "-$size" : '';
 
-    return "http://coverartarchive.org/release/$mbid/$id$size.$extension";
+    return "http://coverartarchive.org/release/$mbid/$id$urlsize.$extension";
 }
 
 1;
