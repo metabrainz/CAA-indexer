@@ -1,10 +1,11 @@
 use utf8;
 use DBIx::Simple;
-use Test::More tests => 5;
+use Test::More tests => 21;
 use Test::Mock::LWP::Dispatch;
 use Test::MockObject;
 use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::Indexer::EventHandler::Index;
+use JSON::Any;
 use Net::Amazon::S3;
 use LWP::UserAgent;
 use Log::Contextual::SimpleLogger;
@@ -37,7 +38,29 @@ $ua->map (qr/index.json$/, sub {
     my $request = shift;
     is ($request->method, 'PUT', 'Put request, writing index.json');
 
-    # FIXME: check json contents
+    my $json = JSON::Any->new( utf8 => 1 );
+    my $data = $json->decode ($request->content);
+    my $front = $data->{images}->[0];
+    my $back = $data->{images}->[1];
+
+    my $caa_prefix = "http://coverartarchive.org/release/aff4a693-5970-4e2e-bd46-e2ee49c22de7";
+    is_deeply ($front->{types}, [ 'Front' ]);
+    is ($front->{front}, 1, "Front image is primary front image");
+    is ($front->{back}, 0, "Front image is not primary back image");
+    is ($front->{comment}, '');
+    is ($front->{id}, "1031598329");
+    is ($front->{image}, "$caa_prefix/1031598329.jpg", "correct image filename");
+    is ($front->{thumbnails}->{small}, "$caa_prefix/1031598329-250.jpg");
+    is ($front->{thumbnails}->{large}, "$caa_prefix/1031598329-500.jpg");
+
+    is_deeply ($back->{types}, [ 'Back' ]);
+    is ($back->{front}, 0, "Back image is not primary front image");
+    is ($back->{back}, 1, "Back image is primary back image");
+    is ($back->{comment}, 'ping!');
+    is ($back->{id}, "4644074265");
+    is ($back->{image}, "$caa_prefix/4644074265.png", "correct image filename");
+    is ($back->{thumbnails}->{small}, "$caa_prefix/4644074265-250.jpg");
+    is ($back->{thumbnails}->{large}, "$caa_prefix/4644074265-500.jpg");
 
     return HTTP::Response->new( 200 );
 });
@@ -80,7 +103,7 @@ $select_from_index_listing_results->set_list (
          'is_back' => 0, 'is_front' => 1,
          'date_uploaded' => '2012-05-24 09:35:13.984115+02',
          'edit' => 1, 'ordering' => 1, 'approved' => 0,
-         'edits_pending' => 0, 'comment' => ''
+         'edits_pending' => 0, 'comment' => '', 'suffix' => 'jpg'
      },
      {
          'id' => '4644074265', 'mime_type' => 'image/png',
@@ -88,7 +111,7 @@ $select_from_index_listing_results->set_list (
          'is_back' => 1, 'is_front' => 0,
          'date_uploaded' => '2013-07-16 12:14:39.942118+02',
          'edit' => 2, 'ordering' => 2, 'approved' => 0,
-         'edits_pending' => 1, 'comment' => 'ping!'
+         'edits_pending' => 1, 'comment' => 'ping!',  'suffix' => 'png'
      }
     );
 
