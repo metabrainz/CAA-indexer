@@ -31,6 +31,11 @@ sub handle_event {
         )->http_request
     );
 
+    if (!$res->is_success) {
+        die "Copying of $old_mbid/$id to $new_mbid/$id failed: " .
+            $res->decoded_content;
+    }
+
     # Delete the old image
     $self->c->lwp->request(
         Net::Amazon::S3::Request::DeleteObject->new(
