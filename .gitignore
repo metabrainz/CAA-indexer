@@ -6,3 +6,5 @@ META.yml
 /.carton
 Makefile
 *~
+config.ini
+svc/CAA-indexer

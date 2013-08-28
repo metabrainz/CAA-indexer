@@ -16,6 +16,7 @@ use LWP::UserAgent;
 use Moose::Util qw( ensure_all_roles );
 use Net::Amazon::S3;
 use Net::Amazon::S3::HTTPRequest;
+use Net::RabbitFoot;
 use Pod::Usage;
 use Try::Tiny;
 
@@ -35,6 +36,7 @@ my $verbose = 0;
 my $db_name = $config->{database}{database};
 my $db_user = $config->{database}{user};
 my $db_host = $config->{database}{host};
+my $db_port = $config->{database}{port};
 my $db_pass = $config->{database}{password};
 my $opt_help;
 my $access_key = $config->{caa}{public_key};
@@ -52,7 +54,7 @@ GetOptions ("user=s" => \$db_user,
 pod2usage(-verbose => 2) if $opt_help;
 
 my $dbh = DBIx::Simple->connect(
-    "dbi:Pg:host=$db_host;dbname=$db_name", $db_user, $db_pass)
+    "dbi:Pg:host=$db_host;dbname=$db_name;port=$db_port", $db_user, $db_pass)
     or die DBIx::Simple->error;
 
 CoverArtArchive::Indexer->new(
@@ -62,7 +64,11 @@ CoverArtArchive::Indexer->new(
         s3 => Net::Amazon::S3->new(
             aws_access_key_id     => $access_key,
             aws_secret_access_key => $secret_access_key
-        )
+        ),
+        rabbitmq => Net::RabbitFoot->new->load_xml_spec->connect(
+            map { $_ => $config->{rabbitmq}{$_} }
+                qw ( host port user pass vhost )
+        )->open_channel
     )
 )->run;
 

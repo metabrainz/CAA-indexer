@@ -7,12 +7,11 @@ use XML::XPath;
 
 with 'CoverArtArchive::Indexer::EventHandler';
 
-sub _build_event_type { 'delete' }
+sub queue { 'delete' };
 
-sub handle_event {
-    my ($self, $event) = @_;
-
-    my ($id, $mbid, $suffix) = split /\n/, $event->{ev_data};
+sub handle {
+    my ($self, $body) = @_;
+    my ($id, $mbid, $suffix) = split /\n/, $body;
 
     $suffix //= "jpg";
 

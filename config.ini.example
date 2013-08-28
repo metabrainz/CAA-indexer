@@ -5,6 +5,13 @@ user = musicbrainz
 database = musicbrainz
 ; password = password
 
+[rabbitmq]
+host = 0.0.0.0
+port = 5672
+user = guest
+pass = guest
+vhost = /
+
 [caa]
 public_key = {public key here}
 private_key = {private key here}
