@@ -25,12 +25,14 @@ my $dbh = DBIx::Simple->connect(
 
 my $rabbitmq = Net::RabbitFoot->new->load_xml_spec->connect(
     map { $_ => $config->{rabbitmq}{$_} } qw ( host port user pass vhost )
-)->open_channel;
+) or die "Could not connect";
+
+my $chan = $rabbitmq->open_channel or die "Could not open RabbitMQ connection";
 
 while (1) {
     if (
         my $batch_id = $dbh->query(
-            'SELECT pgq.next_batch(?, ?)', 'CoverArtIndex', 'CoverArtIndexer'
+            'SELECT pgq.next_batch(?, ?)', 'CoverArtIndex', 'Proxy'
         )->list
     ) {
         my @events = $dbh->query(
