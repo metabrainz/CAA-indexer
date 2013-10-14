@@ -15,11 +15,10 @@ sub handle {
     my ($self, $release_gid) = @_;
 
     my $release = $self->dbh->query(
-        'SELECT name.name, release.barcode, ac_name.name artist, release.gid, release.id
+        'SELECT release.name, release.barcode,
+           artist_credit.name artist, release.gid, release.id
          FROM musicbrainz.release
-         JOIN musicbrainz.release_name name ON name.id = release.name
          JOIN musicbrainz.artist_credit ON artist_credit.id = release.artist_credit
-         JOIN musicbrainz.artist_name ac_name ON ac_name.id = artist_credit.name
          WHERE release.id IN (
              SELECT new_id FROM musicbrainz.release_gid_redirect
              WHERE gid = ?
