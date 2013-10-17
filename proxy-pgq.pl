@@ -40,7 +40,7 @@ while (1) {
         )->hashes;
 
         for my $event (@events) {
-            $rabbitmq->publish(
+            $chan->publish(
                 routing_key => $event->{ev_type},
                 body => $event->{ev_data},
                 exchange => 'cover-art-archive',
