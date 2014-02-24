@@ -24,7 +24,10 @@ sub handle {
     my $req = Net::Amazon::S3::Request::DeleteObject->new(
         s3      => $self->s3,
         bucket  => "mbid-$mbid",
-        key     => $key
+        key     => $key,
+        headers => {
+            "x-archive-keep-old-version" => 1,
+        }
     )->http_request;
 
     my $res = $self->lwp->request($req);
