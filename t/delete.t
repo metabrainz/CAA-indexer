@@ -56,6 +56,6 @@ my $c = CoverArtArchive::Indexer::Context->new (
 
 my $event = CoverArtArchive::Indexer::EventHandler::Delete->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Delete');
-$event->handle_event ($delete_event);
+$event->handle($delete_event);
 
 1;

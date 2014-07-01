@@ -140,6 +140,6 @@ my $c = CoverArtArchive::Indexer::Context->new (
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Index');
-$event->handle_event ($index_event);
+$event->handle($index_event);
 
 1;

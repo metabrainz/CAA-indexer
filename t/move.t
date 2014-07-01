@@ -72,6 +72,6 @@ my $event = CoverArtArchive::Indexer::EventHandler::Move->new (c => $c);
 
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Move');
 
-$event->handle_event ($move_event);
+$event->handle($move_event);
 
 1;
