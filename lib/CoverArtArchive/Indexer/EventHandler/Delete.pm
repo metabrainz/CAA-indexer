@@ -11,7 +11,7 @@ sub queue { 'delete' };
 
 sub handle {
     my ($self, $body) = @_;
-    my ($id, $mbid, $suffix) = split /\n/, $body->{ev_data};
+    my ($id, $mbid, $suffix) = split /\n/, $body;
 
     $suffix //= "jpg";
 
