@@ -125,7 +125,8 @@ $dbh->set_series ('query',
 my $c = CoverArtArchive::Indexer::Context->new (
     dbh => $dbh,
     lwp => $ua,
-    s3 => $s3);
+    s3 => $s3,
+    rabbitmq => 0);
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Index');

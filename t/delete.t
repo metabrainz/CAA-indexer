@@ -30,7 +30,8 @@ $ua->map (qr/^.*$/, sub {
 my $c = CoverArtArchive::Indexer::Context->new (
     dbh => undef,
     lwp => $ua,
-    s3 => $s3);
+    s3 => $s3,
+    rabbitmq => 0);
 
 my $event = CoverArtArchive::Indexer::EventHandler::Delete->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Delete');

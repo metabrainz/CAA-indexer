@@ -54,7 +54,8 @@ $ua->map (qr/aff4a693-5970-4e2e-bd46-e2ee49c22de7/, sub {
 my $c = CoverArtArchive::Indexer::Context->new (
     dbh => undef,
     lwp => $ua,
-    s3 => $s3);
+    s3 => $s3,
+    rabbitmq => 0);
 
 my $event = CoverArtArchive::Indexer::EventHandler::Move->new (c => $c);
 
