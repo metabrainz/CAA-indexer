@@ -7,6 +7,7 @@ use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::Indexer::EventHandler::Index;
 use JSON::Any;
 use Net::Amazon::S3;
+use Net::RabbitFoot;
 use LWP::UserAgent;
 use Log::Contextual::SimpleLogger;
 use Log::Contextual qw( :log ),
@@ -24,6 +25,15 @@ my $index_event = {
     'ev_id' => '1',
     'ev_extra4' => undef
 };
+
+my $rf = Net::RabbitFoot->new()->load_xml_spec()->connect(
+    host => 'localhost',
+    port => 5672,
+    user => 'guest',
+    pass => 'guest',
+    vhost => '/',
+    timeout => 1,
+);
 
 my $s3 = Net::Amazon::S3->new(
         aws_access_key_id     => "test",
@@ -125,7 +135,8 @@ $dbh->set_series ('query',
 my $c = CoverArtArchive::Indexer::Context->new (
     dbh => $dbh,
     lwp => $ua,
-    s3 => $s3);
+    s3 => $s3,
+    rabbitmq => $rf);
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Index');
