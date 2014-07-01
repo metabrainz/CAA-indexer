@@ -53,7 +53,7 @@ sub handle {
                     $release->{id}
                 )->hashes
             ],
-            release => 'http://musicbrainz.org/release/' . $release->{gid}
+            release => 'https://musicbrainz.org/release/' . $release->{gid}
         });
 
         log_debug { "Produced $json" };
