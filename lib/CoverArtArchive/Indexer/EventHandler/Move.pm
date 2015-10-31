@@ -28,6 +28,7 @@ sub handle {
                 "x-archive-auto-make-bucket" => 1,
                 "x-archive-meta-collection" => 'coverartarchive',
                 "x-archive-meta-mediatype" => 'images',
+                "x-archive-keep-old-version" => 1,
             },
             value => ''
         )->http_request
@@ -43,7 +44,10 @@ sub handle {
         Net::Amazon::S3::Request::DeleteObject->new(
             s3 => $self->s3,
             bucket => "mbid-$old_mbid",
-            key => "mbid-$old_mbid-$id.$suffix"
+            key => "mbid-$old_mbid-$id.$suffix",
+            headers => {
+                "x-archive-keep-old-version" => 1,
+            }
         )->http_request
     )
 }
