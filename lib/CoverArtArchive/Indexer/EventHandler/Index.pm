@@ -68,7 +68,8 @@ sub handle {
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
                         "x-archive-auto-make-bucket" => 1,
-                        'Content-Type' => 'application/json; charset=utf-8'
+                        "x-archive-keep-old-version" => 1,
+                        'Content-Type' => 'application/json; charset=utf-8',
                     }
                 )->http_request
             );
@@ -94,7 +95,6 @@ sub handle {
                         'x-archive-meta-collection' => 'coverartarchive',
                         "x-archive-auto-make-bucket" => 1,
                         'Content-Type' => 'application/xml; charset=utf-8',
-                        "x-archive-keep-old-version" => 1,
                     }
                 )->http_request
             );
