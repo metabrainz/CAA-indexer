@@ -40,16 +40,17 @@ sub handle {
     }
 
     # Delete the old image
-    $self->c->lwp->request(
-        Net::Amazon::S3::Request::DeleteObject->new(
-            s3 => $self->s3,
-            bucket => "mbid-$old_mbid",
-            key => "mbid-$old_mbid-$id.$suffix",
-            headers => {
-                "x-archive-keep-old-version" => 1,
-            }
-        )->http_request
-    )
+    my $req = Net::Amazon::S3::Request::DeleteObject->new(
+        s3 => $self->s3,
+        bucket => "mbid-$old_mbid",
+        key => "mbid-$old_mbid-$id.$suffix",
+    )->http_request;
+
+    # Net::Amazon::S3::Request::DeleteObject does not support a headers
+    # attribute, unlike the other Net::Amazon::S3::Request::* packages.
+    $req->header('x-archive-keep-old-version' => 1);
+
+    $self->c->lwp->request($req);
 }
 
 1;

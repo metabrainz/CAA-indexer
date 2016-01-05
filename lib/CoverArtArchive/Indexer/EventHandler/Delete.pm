@@ -25,10 +25,11 @@ sub handle {
         s3      => $self->s3,
         bucket  => "mbid-$mbid",
         key     => $key,
-        headers => {
-            "x-archive-keep-old-version" => 1,
-        }
     )->http_request;
+
+    # Net::Amazon::S3::Request::DeleteObject does not support a headers
+    # attribute, unlike the other Net::Amazon::S3::Request::* packages.
+    $req->header('x-archive-keep-old-version' => 1);
 
     my $res = $self->lwp->request($req);
 
