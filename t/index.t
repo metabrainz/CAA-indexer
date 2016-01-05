@@ -12,18 +12,7 @@ use Log::Contextual::SimpleLogger;
 use Log::Contextual qw( :log ),
    -logger => Log::Contextual::SimpleLogger->new({ levels_upto => 'emergency' });
 
-my $index_event = {
-    'ev_data' => 'aff4a693-5970-4e2e-bd46-e2ee49c22de7',
-    'ev_type' => 'index',
-    'ev_retry' => undef,
-    'ev_extra3' => undef,
-    'ev_extra2' => undef,
-    'ev_txid' => '788962',
-    'ev_extra1' => undef,
-    'ev_time' => '2013-07-11 16:00:48.161626+02',
-    'ev_id' => '1',
-    'ev_extra4' => undef
-};
+my $index_event = 'aff4a693-5970-4e2e-bd46-e2ee49c22de7';
 
 my $s3 = Net::Amazon::S3->new(
         aws_access_key_id     => "test",
@@ -125,10 +114,12 @@ $dbh->set_series ('query',
 my $c = CoverArtArchive::Indexer::Context->new (
     dbh => $dbh,
     lwp => $ua,
-    s3 => $s3);
+    s3 => $s3,
+    rabbitmq => undef,
+);
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);
 isa_ok ($event, 'CoverArtArchive::Indexer::EventHandler::Index');
-$event->handle_event ($index_event);
+$event->handle($index_event);
 
 1;
