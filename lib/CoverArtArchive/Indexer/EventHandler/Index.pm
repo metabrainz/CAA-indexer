@@ -83,14 +83,18 @@ sub handle {
         }
 
         {
+            my $mb_uri = sprintf('http://musicbrainz.org/ws/2/release/%s?inc=artists', $release->{gid});
+            my $mb_res = $self->lwp->get($mb_uri);
+            unless ($mb_res->is_success) {
+                die "Request for $mb_uri failed (" . $mb_res->code . "): " . $mb_res->decoded_content;
+            }
+
             my $res = $self->lwp->request(
                 Net::Amazon::S3::Request::PutObject->new(
                     s3      => $self->s3,
                     bucket  => 'mbid-' . $release->{gid},
                     key     => 'mbid-' . $release->{gid} . '_mb_metadata.xml',
-                    value   => $self->lwp->get(
-                        sprintf('http://musicbrainz.org/ws/2/release/%s?inc=artists', $release->{gid})
-                    )->content,
+                    value   => $mb_res->content,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
                         "x-archive-auto-make-bucket" => 1,
