@@ -1,0 +1,26 @@
+{{- $svc := "docker-server-configs/services/caa-indexer.json/"}}
+{{- $const := "docker-server-configs/constants.json/"}}
+[database]
+{{- if service "pgbouncer-master"}}
+{{- with index (service "pgbouncer-master") 0}}
+host = {{.Address}}
+port = {{.Port}}
+{{- end}}
+{{- end}}
+user = {{key_or_default (print $svc "postgres_user") "musicbrainz"}}
+database = {{key_or_default (print $svc "postgres_database") "musicbrainz_db"}}
+
+[rabbitmq]
+{{- if service "rabbitmq"}}
+{{- with index (service "rabbitmq") 0}}
+host = {{.Address}}
+port = {{.Port}}
+{{- end}}
+{{- end}}
+user = {{key_or_default (print $svc "rabbitmq_user") "guest"}}
+pass = {{key_or_default (print $svc "rabbitmq_pass") ""}}
+vhost = {{key_or_default (print $svc "rabbitmq_vhost") "/"}}
+
+[caa]
+public_key = {{key_or_default (print $const "caa_access_key") ""}}
+private_key = {{key_or_default (print $const "caa_secret_key") ""}}

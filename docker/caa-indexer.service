@@ -1,0 +1,13 @@
+#!/bin/bash
+
+exec 2>&1
+
+source /etc/consul_template_helpers.sh
+
+CAA_ROOT=/home/caa/CAA-indexer
+
+wait_for_file "$CAA_ROOT/config.ini"
+
+cd $CAA_ROOT
+export PERL_CARTON_PATH=/home/caa/carton-local
+exec carton exec -- perl -Ilib ./caa-indexer

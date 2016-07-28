@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  caa-indexer:
+    build: ./
+    links:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.6.5
