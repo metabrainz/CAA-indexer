@@ -1,3 +1,6 @@
+/docker/local-configs
+/docker/docker-compose.dev.yml
+/docker/docker-compose.prod.yml
 /inc
 /local
 MYMETA.yml
