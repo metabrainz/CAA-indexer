@@ -7,6 +7,7 @@ requires 'Getopt::Long';
 requires 'JSON::Any'            => '==1.39';
 requires 'Log::Contextual'      => '==0.007000';
 requires 'LWP::UserAgent';
+requires 'Moose'                => '==2.1806';
 requires 'Net::Amazon::S3'      => '==0.80';
 requires 'Pod::Usage'           => '==1.69';
 requires 'Try::Tiny'            => '==0.27';
