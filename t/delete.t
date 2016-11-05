@@ -31,7 +31,7 @@ my $c = CoverArtArchive::Indexer::Context->new (
     dbh => undef,
     lwp => $ua,
     s3 => $s3,
-    rabbitmq => undef,
+    config => undef,
 );
 
 my $event = CoverArtArchive::Indexer::EventHandler::Delete->new (c => $c);

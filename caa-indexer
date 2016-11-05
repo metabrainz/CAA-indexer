@@ -16,7 +16,6 @@ use LWP::UserAgent;
 use Moose::Util qw( ensure_all_roles );
 use Net::Amazon::S3;
 use Net::Amazon::S3::HTTPRequest;
-use Net::RabbitFoot;
 use Pod::Usage;
 use Try::Tiny;
 
@@ -65,10 +64,7 @@ CoverArtArchive::Indexer->new(
             aws_access_key_id     => $access_key,
             aws_secret_access_key => $secret_access_key
         ),
-        rabbitmq => Net::RabbitFoot->new->load_xml_spec->connect(
-            map { $_ => $config->{rabbitmq}{$_} }
-                qw ( host port user pass vhost )
-        )->open_channel
+        config => $config,
     )
 )->run;
 
