@@ -115,7 +115,7 @@ my $c = CoverArtArchive::Indexer::Context->new (
     dbh => $dbh,
     lwp => $ua,
     s3 => $s3,
-    rabbitmq => undef,
+    config => undef,
 );
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);

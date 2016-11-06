@@ -2,6 +2,7 @@ package CoverArtArchive::Indexer;
 use Moose;
 
 use AnyEvent;
+use AnyEvent::RabbitMQ;
 use CoverArtArchive::Indexer::EventHandler::Delete;
 use CoverArtArchive::Indexer::EventHandler::Index;
 use CoverArtArchive::Indexer::EventHandler::Move;
@@ -29,62 +30,77 @@ has event_handlers => (
     }
 );
 
-sub run {
-    my $self = shift;
+sub on_open_channel {
+    my ($self, $cv, $channel) = @_;
 
     # The main exchange for the CAA
-    $self->rabbitmq->declare_exchange(
+    $channel->declare_exchange(
         exchange => 'cover-art-archive',
         type => 'direct',
-        durable => 1
+        durable => 1,
+        on_failure => $cv,
     );
 
     # Messages arriving here will be delayed for 4-hours
-    $self->rabbitmq->declare_queue(
+    $channel->declare_queue(
         queue => 'cover-art-archive.retry',
         durable => 1,
         arguments => {
             'x-message-ttl' => 4 * 60 * 60 * 1000, # 4 hours
             'x-dead-letter-exchange' => 'cover-art-archive'
-        }
+        },
+        on_failure => $cv,
     );
 
     # Declare a fanout exchange to enqueue retries.
     # Fanout allows us to preserve the routing key when we dead-letter back to the cover-art-archive exchange
-    $self->rabbitmq->declare_exchange(
+    $channel->declare_exchange(
         exchange => 'cover-art-archive.retry',
         type => 'fanout',
-        durable => 1
+        durable => 1,
+        on_failure => $cv,
     );
-    $self->rabbitmq->bind_queue( exchange => 'cover-art-archive.retry', queue => 'cover-art-archive.retry' );
+
+    $channel->bind_queue(
+        exchange => 'cover-art-archive.retry',
+        queue => 'cover-art-archive.retry',
+    );
 
     # Messages sent here need manual intervention
-    $self->rabbitmq->declare_exchange(
+    $channel->declare_exchange(
         exchange => 'cover-art-archive.failed',
         type => 'fanout',
-        durable => 1
+        durable => 1,
+        on_failure => $cv,
     );
-    $self->rabbitmq->declare_queue(
+
+    $channel->declare_queue(
         queue => 'cover-art-archive.failed',
-        durable => 1
+        durable => 1,
+        on_failure => $cv,
     );
-    $self->rabbitmq->bind_queue( queue => 'cover-art-archive.failed', exchange => 'cover-art-archive.failed' );
+
+    $channel->bind_queue(
+        queue => 'cover-art-archive.failed',
+        exchange => 'cover-art-archive.failed',
+    );
 
     for my $handler ($self->event_handlers) {
         my $queue = $handler->queue;
 
-        $self->rabbitmq->declare_queue(
+        $channel->declare_queue(
             queue => "cover-art-archive.$queue",
-            durable => 1
+            durable => 1,
+            on_failure => $cv,
         );
 
-        $self->rabbitmq->bind_queue(
+        $channel->bind_queue(
             queue => "cover-art-archive.$queue",
             exchange => 'cover-art-archive',
-            routing_key => $queue
+            routing_key => $queue,
         );
 
-        $self->rabbitmq->consume(
+        $channel->consume(
             queue => 'cover-art-archive.' . $handler->queue,
             no_ack => 0,
             on_consume => sub {
@@ -99,7 +115,7 @@ sub run {
                     log_error { sprintf "Error running event handler: %s", $_ };
 
                     my $retries_remaining = ($delivery->{header}{headers}{'mb-retries'} // 4);
-                    $self->rabbitmq->publish(
+                    $channel->publish(
                         routing_key => $delivery->{deliver}{method_frame}{routing_key},
 
                         exchange => $retries_remaining > 0
@@ -119,13 +135,34 @@ sub run {
                     );
                 };
 
-                $self->rabbitmq->ack( delivery_tag => $tag );
+                $channel->ack( delivery_tag => $tag );
             }
         );
     }
+}
+
+sub run {
+    my $self = shift;
+
+    my $cv = AnyEvent->condvar;
+
+    my $ar = AnyEvent::RabbitMQ->new->load_xml_spec()->connect(
+        %{ $self->config->{rabbitmq} },
+
+        on_success => sub {
+            my $ar = shift;
+
+            $ar->open_channel(
+                on_success => sub {
+                    $self->on_open_channel($cv, shift);
+                },
+                on_failure => $cv,
+            );
+        },
+    );
 
     # Wait forever
-    AnyEvent->condvar->recv;
+    $cv->recv;
 }
 
 1;

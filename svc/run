@@ -1,7 +1,0 @@
-#!/bin/bash
-echo `date` : Starting CAA-indexer
-exec 2>&1
-set -e
-umask 022
-cd CAA-indexer
-exec setuidgid caaindexer perl -Ilib ./caa-indexer

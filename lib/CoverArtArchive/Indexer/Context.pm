@@ -16,7 +16,7 @@ has dbh => (
     required => 1
 );
 
-has rabbitmq => (
+has config => (
     is => 'ro',
     required => 1
 );
