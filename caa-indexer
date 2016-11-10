@@ -53,8 +53,15 @@ GetOptions ("user=s" => \$db_user,
 pod2usage(-verbose => 2) if $opt_help;
 
 my $dbh = DBIx::Simple->connect(
-    "dbi:Pg:host=$db_host;dbname=$db_name;port=$db_port", $db_user, $db_pass)
-    or die DBIx::Simple->error;
+    "dbi:Pg:host=$db_host;dbname=$db_name;port=$db_port",
+    $db_user,
+    $db_pass,
+    # Prepared statements don't play nice with pgbouncer's transaction pooling
+    # mode. Setting this to 0 prevents errors in the form of
+    # "ERROR:  prepared statement "dbdpg_p67_81" does not exist", which can
+    # occur as queries are executed on different backends.
+    { pg_server_prepare => 0 },
+) or die DBIx::Simple->error;
 
 CoverArtArchive::Indexer->new(
     c => CoverArtArchive::Indexer::Context->new(
