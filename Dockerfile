@@ -36,6 +36,13 @@ RUN apt-get update && \
     sudo -E -H -u caa carton install --deployment && \
     apt-get purge --auto-remove -y $BUILD_DEPS
 
+# https://rt.cpan.org/Public/Bug/Display.html?id=86856
+ARG NET_AMQP_DIR=/home/caa/carton-local/lib/perl5/Net/AMQP/
+COPY docker/net-amqp-common.patch $NET_AMQP_DIR
+RUN cd $NET_AMQP_DIR && \
+    patch Common.pm net-amqp-common.patch && \
+    rm net-amqp-common.patch
+
 COPY caa-indexer docker/config.ini.ctmpl ./
 COPY lib/ lib/
 COPY t/ t/

@@ -1,0 +1,10 @@
+--- Common.pm   2016-11-06 02:31:09.000000000 +0000
++++ Common.pm.new   2016-11-10 17:49:17.425455260 +0000
+@@ -237,6 +237,7 @@
+     V => sub { undef },
+     S => \&unpack_long_string,
+     I => \&unpack_long_integer,
++    l => \&unpack_long_long_integer,
+     D => sub {
+         my $input_ref = shift;
+         my $exp = unpack_octet($input_ref);
