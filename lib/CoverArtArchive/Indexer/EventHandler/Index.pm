@@ -1,15 +1,16 @@
 package CoverArtArchive::Indexer::EventHandler::Index;
 use Moose;
 
-use JSON::Any;
+use JSON::XS;
 use Log::Contextual qw( :log );
 use Net::Amazon::S3::Request::PutObject;
+use Types::Serialiser;
 
 with 'CoverArtArchive::Indexer::EventHandler';
 
 sub queue { 'index' }
 
-my $json = JSON::Any->new( utf8 => 1 );
+my $json = JSON::XS->new->utf8;
 
 sub handle {
     my ($self, $release_gid) = @_;
@@ -30,19 +31,19 @@ sub handle {
     )->hash;
 
     if ($release) {
-        my $json = $json->objToJson({
+        my $json = $json->encode({
             images => [
                 map +{
                     types => $_->{types},
-                    front => $_->{is_front} ? JSON::Any->true : JSON::Any->false,
-                    back => $_->{is_back} ? JSON::Any->true : JSON::Any->false,
+                    front => $_->{is_front} ? Types::Serialiser::true : Types::Serialiser::false,
+                    back => $_->{is_back} ? Types::Serialiser::true : Types::Serialiser::false,
                     comment => $_->{comment},
                     image => image_url($release->{gid}, $_->{id}, undef, $_->{suffix}),
                     thumbnails => {
                         small => image_url($release->{gid}, $_->{id}, 250, 'jpg'),
                         large => image_url($release->{gid}, $_->{id}, 500, 'jpg'),
                     },
-                    approved => $_->{approved} ? JSON::Any->true : JSON::Any->false,
+                    approved => $_->{approved} ? Types::Serialiser::true : Types::Serialiser::false,
                     edit => $_->{edit},
                     id => $_->{id}
                 }, $self->dbh->query(

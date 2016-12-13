@@ -5,7 +5,7 @@ use Test::Mock::LWP::Dispatch;
 use Test::MockObject;
 use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::Indexer::EventHandler::Index;
-use JSON::Any;
+use JSON::XS;
 use Net::Amazon::S3;
 use LWP::UserAgent;
 use Log::Contextual::SimpleLogger;
@@ -27,7 +27,7 @@ $ua->map (qr/index.json$/, sub {
     my $request = shift;
     is ($request->method, 'PUT', 'Put request, writing index.json');
 
-    my $json = JSON::Any->new( utf8 => 1 );
+    my $json = JSON::XS->new->utf8;
     my $data = $json->decode ($request->content);
     my $front = $data->{images}->[0];
     my $back = $data->{images}->[1];

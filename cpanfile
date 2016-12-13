@@ -4,7 +4,7 @@ requires 'Config::Tiny'         => '==2.23';
 requires 'DBD::Pg'              => '==3.5.3';
 requires 'DBIx::Simple'         => '==1.35';
 requires 'Getopt::Long';
-requires 'JSON::Any'            => '==1.39';
+requires 'JSON::XS'             => '==3.03';
 requires 'Log::Contextual'      => '==0.007000';
 requires 'LWP::UserAgent';
 requires 'Moose'                => '==2.1806';
