@@ -92,6 +92,16 @@ sub on_open_channel {
             queue => "cover-art-archive.$queue",
             durable => 1,
             on_failure => $cv,
+            on_success => sub {
+                $channel->consume(
+                    queue => 'cover-art-archive.' . $handler->queue,
+                    no_ack => 0,
+                    on_consume => sub {
+                        on_consume($channel, $handler, shift);
+                    },
+                    on_failure => $cv,
+                );
+            },
         );
 
         $channel->bind_queue(
@@ -99,46 +109,42 @@ sub on_open_channel {
             exchange => 'cover-art-archive',
             routing_key => $queue,
         );
+    }
+}
 
-        $channel->consume(
-            queue => 'cover-art-archive.' . $handler->queue,
-            no_ack => 0,
-            on_consume => sub {
-                my $delivery = shift;
-                my $tag = $delivery->{deliver}{method_frame}{delivery_tag};
-                my $body = $delivery->{body}{payload};
+sub on_consume {
+    my ($channel, $handler, $delivery) = @_;
 
-                try {
-                    $handler->handle($body);
+    my $tag = $delivery->{deliver}{method_frame}{delivery_tag};
+    my $body = $delivery->{body}{payload};
+
+    try {
+        $handler->handle($body);
+    } catch {
+        log_error { sprintf "Error running event handler: %s", $_ };
+
+        my $retries_remaining = ($delivery->{header}{headers}{'mb-retries'} // 4);
+        $channel->publish(
+            routing_key => $delivery->{deliver}{method_frame}{routing_key},
+
+            exchange => $retries_remaining > 0
+                ? 'cover-art-archive.retry'
+                : 'cover-art-archive.failed',
+
+            body => $body,
+            header => {
+                headers => {
+                    'mb-retries' => $retries_remaining - 1,
+                    'mb-exceptions' => [
+                        @{ $delivery->{header}{headers}{'mb-exceptions'} // [] },
+                        $_
+                    ]
                 }
-                catch {
-                    log_error { sprintf "Error running event handler: %s", $_ };
-
-                    my $retries_remaining = ($delivery->{header}{headers}{'mb-retries'} // 4);
-                    $channel->publish(
-                        routing_key => $delivery->{deliver}{method_frame}{routing_key},
-
-                        exchange => $retries_remaining > 0
-                            ? 'cover-art-archive.retry'
-                            : 'cover-art-archive.failed',
-
-                        body => $body,
-                        header => {
-                            headers => {
-                                'mb-retries' => $retries_remaining - 1,
-                                'mb-exceptions' => [
-                                    @{ $delivery->{header}{headers}{'mb-exceptions'} // [] },
-                                    $_
-                                ]
-                            }
-                        }
-                    );
-                };
-
-                $channel->ack( delivery_tag => $tag );
             }
         );
-    }
+    };
+
+    $channel->ack( delivery_tag => $tag );
 }
 
 sub run {
