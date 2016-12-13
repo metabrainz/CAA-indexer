@@ -57,10 +57,13 @@ my $dbh = DBIx::Simple->connect(
     $db_user,
     $db_pass,
     # Prepared statements don't play nice with pgbouncer's transaction pooling
-    # mode. Setting this to 0 prevents errors in the form of
+    # mode. Setting `pg_server_prepare` to 0 prevents errors in the form of
     # "ERROR:  prepared statement "dbdpg_p67_81" does not exist", which can
     # occur as queries are executed on different backends.
-    { pg_server_prepare => 0 },
+    {
+        client_encoding => 'UTF8',
+        pg_server_prepare => 0,
+    },
 ) or die DBIx::Simple->error;
 
 CoverArtArchive::Indexer->new(
