@@ -1,0 +1,12 @@
+define(`CAA_PRIVATE_KEY', `')dnl
+define(`CAA_PUBLIC_KEY', `')dnl
+define(`POSTGRES_DATABASE', `musicbrainz_db')dnl
+define(`POSTGRES_HOST', `postgres1')dnl
+define(`POSTGRES_PASSWORD', `')dnl
+define(`POSTGRES_PORT', `5432')dnl
+define(`POSTGRES_USERNAME', `musicbrainz')dnl
+define(`RABBITMQ_HOST', `rabbitmq1')dnl
+define(`RABBITMQ_PASSWORD', `')dnl
+define(`RABBITMQ_PORT', `5672')dnl
+define(`RABBITMQ_USERNAME', `caa')dnl
+define(`RABBITMQ_VHOST', `/cover-art-archive')dnl
