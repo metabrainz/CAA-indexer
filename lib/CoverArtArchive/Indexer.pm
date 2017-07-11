@@ -165,6 +165,8 @@ sub run {
                 on_failure => $cv,
             );
         },
+
+        on_close => sub { die @_ },
     );
 
     # Wait forever
