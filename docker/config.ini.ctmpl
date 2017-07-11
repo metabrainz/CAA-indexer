@@ -7,8 +7,8 @@ host = {{.Address}}
 port = {{.Port}}
 {{- end}}
 {{- end}}
-user = {{key_or_default (print $svc "postgres_user") "musicbrainz"}}
-database = {{key_or_default (print $svc "postgres_database") "musicbrainz_db"}}
+user = {{keyOrDefault (print $svc "postgres_user") "musicbrainz"}}
+database = {{keyOrDefault (print $svc "postgres_database") "musicbrainz_db"}}
 
 [rabbitmq]
 {{- if service "rabbitmq"}}
@@ -17,10 +17,10 @@ host = {{.Address}}
 port = {{.Port}}
 {{- end}}
 {{- end}}
-user = {{key_or_default (print $svc "rabbitmq_user") "guest"}}
-pass = {{key_or_default (print $svc "rabbitmq_pass") ""}}
-vhost = {{key_or_default (print $svc "rabbitmq_vhost") "/"}}
+user = {{keyOrDefault (print $svc "rabbitmq_user") "guest"}}
+pass = {{keyOrDefault (print $svc "rabbitmq_pass") ""}}
+vhost = {{keyOrDefault (print $svc "rabbitmq_vhost") "/"}}
 
 [caa]
-public_key = {{key_or_default (print $const "caa_access_key") ""}}
-private_key = {{key_or_default (print $const "caa_secret_key") ""}}
+public_key = {{keyOrDefault (print $const "caa_access_key") ""}}
+private_key = {{keyOrDefault (print $const "caa_secret_key") ""}}

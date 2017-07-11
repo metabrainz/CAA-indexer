@@ -1,4 +1,4 @@
-FROM metabrainz/consul-template-base
+FROM metabrainz/consul-template-base:v0.18.5-1
 
 ARG BUILD_DEPS=" \
     build-essential \
@@ -33,15 +33,15 @@ RUN apt-get update && \
     cpanm Carton && \
     mkdir -p $PERL_CARTON_PATH && \
     chown caa:caa $PERL_CARTON_PATH && \
-    sudo -E -H -u caa carton install --deployment && \
-    apt-get purge --auto-remove -y $BUILD_DEPS
+    sudo -E -H -u caa carton install --deployment
 
 # https://rt.cpan.org/Public/Bug/Display.html?id=86856
 ARG NET_AMQP_DIR=/home/caa/carton-local/lib/perl5/Net/AMQP/
 COPY docker/net-amqp-common.patch $NET_AMQP_DIR
 RUN cd $NET_AMQP_DIR && \
     patch Common.pm net-amqp-common.patch && \
-    rm net-amqp-common.patch
+    rm net-amqp-common.patch && \
+    apt-get purge --auto-remove -y $BUILD_DEPS
 
 COPY caa-indexer docker/config.ini.ctmpl ./
 COPY lib/ lib/
@@ -50,4 +50,5 @@ COPY t/ t/
 RUN chown -R caa:caa $CAA_ROOT
 
 COPY docker/caa-indexer.service /etc/service/caa-indexer/run
-COPY docker/consul-template.conf /etc/
+COPY docker/consul-template-caa-indexer.conf /etc/
+COPY docker/caa-indexer /usr/local/bin/
