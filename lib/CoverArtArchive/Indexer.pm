@@ -112,39 +112,58 @@ sub on_open_channel {
     }
 }
 
+# MusicBrainz Server will sometimes publish the same message multiple times,
+# due to its SQL triggers firing for the same release on different occasions.
+# To address this, we deduplicate received messages in the %pending_events
+# hash, and have a 10s grace period before handling them.
+my %pending_events;
+
 sub on_consume {
     my ($channel, $handler, $delivery) = @_;
 
     my $tag = $delivery->{deliver}{method_frame}{delivery_tag};
     my $body = $delivery->{body}{payload};
 
-    try {
-        $handler->handle($body);
-    } catch {
-        log_error { sprintf "Error running event handler: %s", $_ };
+    if (exists $pending_events{$body}) {
+        $channel->ack( delivery_tag => $tag );
+        return;
+    }
 
-        my $retries_remaining = ($delivery->{header}{headers}{'mb-retries'} // 4);
-        $channel->publish(
-            routing_key => $delivery->{deliver}{method_frame}{routing_key},
+    $pending_events{$body} = 1;
 
-            exchange => $retries_remaining > 0
-                ? 'cover-art-archive.retry'
-                : 'cover-art-archive.failed',
+    my $w;
+    $w = AnyEvent->timer(after => 10, cb => sub {
+        undef $w;
+        delete $pending_events{$body};
 
-            body => $body,
-            header => {
-                headers => {
-                    'mb-retries' => $retries_remaining - 1,
-                    'mb-exceptions' => [
-                        @{ $delivery->{header}{headers}{'mb-exceptions'} // [] },
-                        $_
-                    ]
+        try {
+            $handler->handle($body);
+        } catch {
+            log_error { sprintf "Error running event handler: %s", $_ };
+
+            my $retries_remaining = ($delivery->{header}{headers}{'mb-retries'} // 4);
+            $channel->publish(
+                routing_key => $delivery->{deliver}{method_frame}{routing_key},
+
+                exchange => $retries_remaining > 0
+                    ? 'cover-art-archive.retry'
+                    : 'cover-art-archive.failed',
+
+                body => $body,
+                header => {
+                    headers => {
+                        'mb-retries' => $retries_remaining - 1,
+                        'mb-exceptions' => [
+                            @{ $delivery->{header}{headers}{'mb-exceptions'} // [] },
+                            $_
+                        ]
+                    }
                 }
-            }
-        );
-    };
+            );
+        };
 
-    $channel->ack( delivery_tag => $tag );
+        $channel->ack( delivery_tag => $tag );
+    });
 }
 
 sub run {
