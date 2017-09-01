@@ -10,7 +10,7 @@ with 'CoverArtArchive::Indexer::EventHandler';
 
 sub queue { 'index' }
 
-my $json = JSON::XS->new->utf8;
+my $json = JSON::XS->new->utf8->canonical;
 
 sub handle {
     my ($self, $release_gid) = @_;
