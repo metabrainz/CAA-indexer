@@ -123,18 +123,19 @@ sub on_consume {
 
     my $tag = $delivery->{deliver}{method_frame}{delivery_tag};
     my $body = $delivery->{body}{payload};
+    my $message_id = $handler->queue . ':' . $body;
 
-    if (exists $pending_events{$body}) {
+    if (exists $pending_events{$message_id}) {
         $channel->ack( delivery_tag => $tag );
         return;
     }
 
-    $pending_events{$body} = 1;
+    $pending_events{$message_id} = 1;
 
     my $w;
     $w = AnyEvent->timer(after => 10, cb => sub {
         undef $w;
-        delete $pending_events{$body};
+        delete $pending_events{$message_id};
 
         try {
             $handler->handle($body);
