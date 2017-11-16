@@ -6,6 +6,7 @@ use AnyEvent::RabbitMQ;
 use CoverArtArchive::Indexer::EventHandler::Delete;
 use CoverArtArchive::Indexer::EventHandler::Index;
 use CoverArtArchive::Indexer::EventHandler::Move;
+use Data::Dumper;
 use Log::Contextual qw( :log );
 use Try::Tiny;
 
@@ -183,10 +184,31 @@ sub run {
                     $self->on_open_channel($cv, shift);
                 },
                 on_failure => $cv,
+                on_close => sub {
+                    my $method_frame = shift->method_frame;
+                    die $method_frame->reply_code, $method_frame->reply_text;
+                },
             );
         },
 
-        on_close => sub { die @_ },
+        on_close => sub {
+            my $why = shift;
+            if (ref($why)) {
+                my $method_frame = $why->method_frame;
+                die $method_frame->reply_code, ': ', $method_frame->reply_text;
+            } else {
+                die $why;
+            }
+        },
+
+        on_failure => $cv,
+
+        on_read_failure => sub { die @_ },
+
+        on_return => sub {
+            my $frame = shift;
+            die 'Unable to deliver ', Dumper($frame);
+        },
     );
 
     # Wait forever
