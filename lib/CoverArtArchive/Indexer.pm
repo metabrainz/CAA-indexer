@@ -7,6 +7,7 @@ use CoverArtArchive::Indexer::EventHandler::Delete;
 use CoverArtArchive::Indexer::EventHandler::Index;
 use CoverArtArchive::Indexer::EventHandler::Move;
 use Data::Dumper;
+use Devel::StackTrace;
 use Log::Contextual qw( :log );
 use Try::Tiny;
 
@@ -210,6 +211,12 @@ sub run {
             die 'Unable to deliver ', Dumper($frame);
         },
     );
+
+    $cv->cb(sub {
+        my $trace = Devel::StackTrace->new;
+        print "The main event loop has exited:\n", $trace->as_string;
+        exit 1;
+    });
 
     # Wait forever
     $cv->recv;
