@@ -6,7 +6,7 @@ requires 'DBIx::Simple'         => '==1.35';
 requires 'Devel::StackTrace'    => '==2.02';
 requires 'Getopt::Long';
 requires 'JSON::XS'             => '==3.03';
-requires 'Log::Contextual'      => '==0.007000';
+requires 'Log::Contextual'      => '==0.008000';
 requires 'LWP::UserAgent';
 requires 'Moose'                => '==2.1806';
 requires 'Net::Amazon::S3'      => '==0.80';
