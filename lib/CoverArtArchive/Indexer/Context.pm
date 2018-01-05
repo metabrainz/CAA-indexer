@@ -11,11 +11,6 @@ has lwp => (
     required => 1,
 );
 
-has dbh => (
-    is => 'ro',
-    required => 1
-);
-
 has config => (
     is => 'ro',
     required => 1

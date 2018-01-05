@@ -15,5 +15,4 @@ requires 'Try::Tiny'            => '==0.27';
 requires 'XML::XPath'           => '==1.37';
 
 requires 'Test::Mock::LWP::Dispatch';
-requires 'Test::MockObject';
 requires 'Test::More';

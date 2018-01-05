@@ -1,6 +1,7 @@
 package CoverArtArchive::Indexer::EventHandler::Index;
 use Moose;
 
+use DBIx::Simple;
 use JSON::XS;
 use Log::Contextual qw( :log );
 use Net::Amazon::S3::Request::PutObject;
@@ -15,7 +16,9 @@ my $json = JSON::XS->new->utf8->canonical;
 sub handle {
     my ($self, $release_gid) = @_;
 
-    my $release = $self->dbh->query(
+    my $dbh = get_dbh($self->config->{database});
+
+    my $release = $dbh->query(
         'SELECT release.name, release.barcode,
            artist_credit.name artist, release.gid, release.id
          FROM musicbrainz.release
@@ -46,7 +49,7 @@ sub handle {
                     approved => $_->{approved} ? Types::Serialiser::true : Types::Serialiser::false,
                     edit => $_->{edit},
                     id => $_->{id}
-                }, $self->dbh->query(
+                }, $dbh->query(
                     'SELECT * FROM cover_art_archive.index_listing
                      JOIN cover_art_archive.image_type USING (mime_type)
                      WHERE release = ?
@@ -58,6 +61,7 @@ sub handle {
         });
 
         log_debug { "Produced $json" };
+        $dbh->disconnect;
 
         {
             my $res = $self->lwp->request(
@@ -114,6 +118,7 @@ sub handle {
     }
     else {
         log_debug { "Release $release_gid does not exist, skipping indexing" };
+        $dbh->disconnect;
     }
 }
 
@@ -122,6 +127,29 @@ sub image_url {
     my $urlsize = defined($size) ? "-$size" : '';
 
     return "http://coverartarchive.org/release/$mbid/$id$urlsize.$extension";
+}
+
+sub get_dbh {
+    my ($config) = @_;
+
+    my ($db_name, $db_host, $db_port, $db_user, $db_pass) =
+        @{$config}{qw( database host port user password )};
+
+    my $dbh = DBIx::Simple->connect(
+        "dbi:Pg:dbname=$db_name;host=$db_host;port=$db_port",
+        $db_user,
+        $db_pass,
+        {
+            client_encoding => 'UTF8',
+            # Prepared statements don't play nice with pgbouncer's transaction
+            # pooling mode. Setting pg_server_prepare to 0 prevents errors in
+            # the form of
+            # "ERROR:  prepared statement "dbdpg_p67_81" does not exist",
+            # which can occur as queries are executed on different backends.
+            pg_server_prepare => 0,
+        },
+    ) or die DBIx::Simple->error;
+    return $dbh;
 }
 
 1;
