@@ -9,6 +9,7 @@ use CoverArtArchive::Indexer::EventHandler::Move;
 use Data::Dumper;
 use Devel::StackTrace;
 use Log::Contextual qw( :log );
+use POSIX qw( SIGHUP );
 use Try::Tiny;
 
 with 'CoverArtArchive::Indexer::UseContext';
@@ -169,12 +170,11 @@ sub on_consume {
     });
 }
 
-sub run {
-    my $self = shift;
+sub connect_to_rabbitmq {
+    my ($self, $cv) = @_;
 
-    my $cv = AnyEvent->condvar;
-
-    my $ar = AnyEvent::RabbitMQ->new->load_xml_spec()->connect(
+    my $ar;
+    $ar = AnyEvent::RabbitMQ->new->load_xml_spec()->connect(
         %{ $self->config->{rabbitmq} },
 
         on_success => sub {
@@ -184,8 +184,11 @@ sub run {
                 on_success => sub {
                     $self->on_open_channel($cv, shift);
                 },
-                on_failure => $cv,
+                on_failure => sub {
+                    $cv->(@_) unless $ar->{_graceful_close};
+                },
                 on_close => sub {
+                    return if $ar->{_graceful_close};
                     my $method_frame = shift->method_frame;
                     die $method_frame->reply_code, $method_frame->reply_text;
                 },
@@ -193,6 +196,7 @@ sub run {
         },
 
         on_close => sub {
+            return if $ar->{_graceful_close};
             my $why = shift;
             if (ref($why)) {
                 my $method_frame = $why->method_frame;
@@ -202,7 +206,9 @@ sub run {
             }
         },
 
-        on_failure => $cv,
+        on_failure => sub {
+            $cv->(@_) unless $ar->{_graceful_close};
+        },
 
         on_read_failure => sub { die @_ },
 
@@ -212,11 +218,32 @@ sub run {
         },
     );
 
+    $ar->{_graceful_close} = 0;
+    return $ar;
+}
+
+sub run {
+    my $self = shift;
+
+    my $cv = AnyEvent->condvar;
+    my $ar = $self->connect_to_rabbitmq($cv);
+
     $cv->cb(sub {
         my $trace = Devel::StackTrace->new;
         print "The main event loop has exited:\n", $trace->as_string;
         exit 1;
     });
+
+    my $hup_action = POSIX::SigAction->new(sub {
+        log_info { 'Received SIGHUP; reloading config' };
+        $self->c->reload_config;
+
+        $ar->{_graceful_close} = 1;
+        $ar->close;
+        $ar = $self->connect_to_rabbitmq($cv);
+    });
+    $hup_action->safe(1);
+    POSIX::sigaction(SIGHUP, $hup_action);
 
     # Wait forever
     $cv->recv;
