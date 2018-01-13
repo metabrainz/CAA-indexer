@@ -2393,6 +2393,18 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
+  Pod-Usage-1.69
+    pathname: M/MA/MAREKR/Pod-Usage-1.69.tar.gz
+    provides:
+      Pod::Usage 1.69
+    requirements:
+      Cwd 0
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Spec 0.82
+      Pod::Text 4
+      Test::More 0.6
+      blib 0
   Readonly-2.05
     pathname: S/SA/SANKO/Readonly-2.05.tar.gz
     provides:
@@ -2454,6 +2466,17 @@ DISTRIBUTIONS
       Role::Tiny::With 2.000006
     requirements:
       Exporter 5.57
+      perl 5.006
+  Scalar-List-Utils-1.49
+    pathname: P/PE/PEVANS/Scalar-List-Utils-1.49.tar.gz
+    provides:
+      List::Util 1.49
+      List::Util::XS 1.49
+      Scalar::Util 1.49
+      Sub::Util 1.49
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
       perl 5.006
   Set-Infinite-0.65
     pathname: F/FG/FGLOCK/Set-Infinite-0.65.tar.gz
@@ -2826,6 +2849,80 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.47
       perl 5.006
+  Test-Simple-1.302120
+    pathname: E/EX/EXODIST/Test-Simple-1.302120.tar.gz
+    provides:
+      Test2 1.302120
+      Test2::API 1.302120
+      Test2::API::Breakage 1.302120
+      Test2::API::Context 1.302120
+      Test2::API::Instance 1.302120
+      Test2::API::Stack 1.302120
+      Test2::Event 1.302120
+      Test2::Event::Bail 1.302120
+      Test2::Event::Diag 1.302120
+      Test2::Event::Encoding 1.302120
+      Test2::Event::Exception 1.302120
+      Test2::Event::Fail 1.302120
+      Test2::Event::Generic 1.302120
+      Test2::Event::Note 1.302120
+      Test2::Event::Ok 1.302120
+      Test2::Event::Pass 1.302120
+      Test2::Event::Plan 1.302120
+      Test2::Event::Skip 1.302120
+      Test2::Event::Subtest 1.302120
+      Test2::Event::TAP::Version 1.302120
+      Test2::Event::Waiting 1.302120
+      Test2::EventFacet 1.302120
+      Test2::EventFacet::About 1.302120
+      Test2::EventFacet::Amnesty 1.302120
+      Test2::EventFacet::Assert 1.302120
+      Test2::EventFacet::Control 1.302120
+      Test2::EventFacet::Error 1.302120
+      Test2::EventFacet::Info 1.302120
+      Test2::EventFacet::Meta 1.302120
+      Test2::EventFacet::Parent 1.302120
+      Test2::EventFacet::Plan 1.302120
+      Test2::EventFacet::Trace 1.302120
+      Test2::Formatter 1.302120
+      Test2::Formatter::TAP 1.302120
+      Test2::Hub 1.302120
+      Test2::Hub::Interceptor 1.302120
+      Test2::Hub::Interceptor::Terminator 1.302120
+      Test2::Hub::Subtest 1.302120
+      Test2::IPC 1.302120
+      Test2::IPC::Driver 1.302120
+      Test2::IPC::Driver::Files 1.302120
+      Test2::Tools::Tiny 1.302120
+      Test2::Util 1.302120
+      Test2::Util::ExternalMeta 1.302120
+      Test2::Util::Facets2Legacy 1.302120
+      Test2::Util::HashBase 1.302120
+      Test2::Util::Trace 1.302120
+      Test::Builder 1.302120
+      Test::Builder::Formatter 1.302120
+      Test::Builder::IO::Scalar 2.114
+      Test::Builder::Module 1.302120
+      Test::Builder::Tester 1.302120
+      Test::Builder::Tester::Color 1.302120
+      Test::Builder::Tester::Tie 1.302120
+      Test::Builder::TodoDiag 1.302120
+      Test::More 1.302120
+      Test::Simple 1.302120
+      Test::Tester 1.302120
+      Test::Tester::Capture 1.302120
+      Test::Tester::CaptureRunner 1.302120
+      Test::Tester::Delegate 1.302120
+      Test::use::ok 1.302120
+      ok 1.302120
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Spec 0
+      File::Temp 0
+      Scalar::Util 1.13
+      Storable 0
+      perl 5.006002
+      utf8 0
   Test-Warn-0.32
     pathname: B/BI/BIGJ/Test-Warn-0.32.tar.gz
     provides:
@@ -2957,52 +3054,52 @@ DISTRIBUTIONS
       strict 0
       warnings 0
       warnings::register 0
-  URI-1.72
-    pathname: E/ET/ETHER/URI-1.72.tar.gz
+  URI-1.73
+    pathname: E/ET/ETHER/URI-1.73.tar.gz
     provides:
-      URI 1.72
+      URI 1.73
       URI::Escape 3.31
       URI::Heuristic 4.20
-      URI::IRI 1.72
-      URI::QueryParam 1.72
-      URI::Split 1.72
+      URI::IRI 1.73
+      URI::QueryParam 1.73
+      URI::Split 1.73
       URI::URL 5.04
       URI::WithBase 2.20
-      URI::data 1.72
+      URI::data 1.73
       URI::file 4.21
-      URI::file::Base 1.72
-      URI::file::FAT 1.72
-      URI::file::Mac 1.72
-      URI::file::OS2 1.72
-      URI::file::QNX 1.72
-      URI::file::Unix 1.72
-      URI::file::Win32 1.72
-      URI::ftp 1.72
-      URI::gopher 1.72
-      URI::http 1.72
-      URI::https 1.72
-      URI::ldap 1.72
-      URI::ldapi 1.72
-      URI::ldaps 1.72
-      URI::mailto 1.72
-      URI::mms 1.72
-      URI::news 1.72
-      URI::nntp 1.72
-      URI::pop 1.72
-      URI::rlogin 1.72
-      URI::rsync 1.72
-      URI::rtsp 1.72
-      URI::rtspu 1.72
-      URI::sftp 1.72
-      URI::sip 1.72
-      URI::sips 1.72
-      URI::snews 1.72
-      URI::ssh 1.72
-      URI::telnet 1.72
-      URI::tn3270 1.72
-      URI::urn 1.72
-      URI::urn::isbn 1.72
-      URI::urn::oid 1.72
+      URI::file::Base 1.73
+      URI::file::FAT 1.73
+      URI::file::Mac 1.73
+      URI::file::OS2 1.73
+      URI::file::QNX 1.73
+      URI::file::Unix 1.73
+      URI::file::Win32 1.73
+      URI::ftp 1.73
+      URI::gopher 1.73
+      URI::http 1.73
+      URI::https 1.73
+      URI::ldap 1.73
+      URI::ldapi 1.73
+      URI::ldaps 1.73
+      URI::mailto 1.73
+      URI::mms 1.73
+      URI::news 1.73
+      URI::nntp 1.73
+      URI::pop 1.73
+      URI::rlogin 1.73
+      URI::rsync 1.73
+      URI::rtsp 1.73
+      URI::rtspu 1.73
+      URI::sftp 1.73
+      URI::sip 1.73
+      URI::sips 1.73
+      URI::snews 1.73
+      URI::ssh 1.73
+      URI::telnet 1.73
+      URI::tn3270 1.73
+      URI::urn 1.73
+      URI::urn::isbn 1.73
+      URI::urn::oid 1.73
     requirements:
       Carp 0
       Cwd 0
@@ -3364,6 +3461,13 @@ DISTRIBUTIONS
       Test::More 0
       XML::Parser 2.23
       perl 5.006
+  XSLoader-0.24
+    pathname: S/SA/SAPER/XSLoader-0.24.tar.gz
+    provides:
+      XSLoader 0.24
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0.47
   aliased-0.34
     pathname: E/ET/ETHER/aliased-0.34.tar.gz
     provides:
@@ -3470,3 +3574,18 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Package::Stash 0.23
       perl 5.008001
+  podlators-4.10
+    pathname: R/RR/RRA/podlators-4.10.tar.gz
+    provides:
+      Pod undef
+      Pod::Man 4.10
+      Pod::ParseLink 4.10
+      Pod::Text 4.10
+      Pod::Text::Color 4.10
+      Pod::Text::Overstrike 4.10
+      Pod::Text::Termcap 4.10
+    requirements:
+      Encode 0
+      ExtUtils::MakeMaker 0
+      Pod::Simple 3.06
+      perl 5.006
