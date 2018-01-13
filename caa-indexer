@@ -3,18 +3,16 @@
 use strict;
 use warnings;
 
-use Config::Tiny;
 use CoverArtArchive::Indexer;
 use CoverArtArchive::Indexer::Context;
 use CoverArtArchive::IAS3Request;
-use DBIx::Simple;
+use File::Basename qw( dirname );
+use File::Spec::Functions qw( catfile file_name_is_absolute rel2abs );
 use Getopt::Long;
 use Log::Contextual::SimpleLogger;
 use Log::Contextual qw( :log ),
    -logger => Log::Contextual::SimpleLogger->new({ levels_upto => 'trace' });
-use LWP::UserAgent;
 use Moose::Util qw( ensure_all_roles );
-use Net::Amazon::S3;
 use Net::Amazon::S3::HTTPRequest;
 use Pod::Usage;
 use Try::Tiny;
@@ -31,7 +29,7 @@ my $db_pass;
 my $opt_help;
 my $access_key;
 my $secret_access_key;
-my $config_file = 'config.ini';
+my $config_file = catfile(dirname(__FILE__), 'config.ini');
 
 GetOptions ("user=s" => \$db_user,
             "db=s"   => \$db_name,
@@ -45,42 +43,25 @@ GetOptions ("user=s" => \$db_user,
     or pod2usage();
 pod2usage(-verbose => 2) if $opt_help;
 
-my $config = Config::Tiny->read($config_file);
+$config_file = rel2abs($config_file)
+    unless file_name_is_absolute($config_file);
 
 log_warn{ "Could not find a config file (wanted $config_file), supply command line arguments or provide a config.ini file" }
     unless -f $config_file;
 
-$db_name //= $config->{database}{database};
-$db_user //= $config->{database}{user};
-$db_host //= $config->{database}{host};
-$db_port //= $config->{database}{port};
-$db_pass //= $config->{database}{password};
-$access_key //= $config->{caa}{public_key};
-$secret_access_key //= $config->{caa}{private_key};
-
-my $dbh = DBIx::Simple->connect(
-    "dbi:Pg:host=$db_host;dbname=$db_name;port=$db_port",
-    $db_user,
-    $db_pass,
-    # Prepared statements don't play nice with pgbouncer's transaction pooling
-    # mode. Setting `pg_server_prepare` to 0 prevents errors in the form of
-    # "ERROR:  prepared statement "dbdpg_p67_81" does not exist", which can
-    # occur as queries are executed on different backends.
-    {
-        client_encoding => 'UTF8',
-        pg_server_prepare => 0,
-    },
-) or die DBIx::Simple->error;
+my %opts;
+$opts{config} = $config_file;
+$opts{database}{database} = $db_name if defined $db_name;
+$opts{database}{user} = $db_user if defined $db_user;
+$opts{database}{host} = $db_host if defined $db_host;
+$opts{database}{port} = $db_port if defined $db_port;
+$opts{database}{password} = $db_pass if defined $db_pass;
+$opts{caa}{public_key} = $access_key if defined $access_key;
+$opts{caa}{private_key} = $secret_access_key if defined $secret_access_key;
 
 CoverArtArchive::Indexer->new(
     c => CoverArtArchive::Indexer::Context->new(
-        lwp => LWP::UserAgent->new,
-        dbh => $dbh,
-        s3 => Net::Amazon::S3->new(
-            aws_access_key_id     => $access_key,
-            aws_secret_access_key => $secret_access_key
-        ),
-        config => $config,
+        opts_config => \%opts,
     )
 )->run;
 

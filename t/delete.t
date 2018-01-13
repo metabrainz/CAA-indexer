@@ -28,7 +28,6 @@ $ua->map (qr/^.*$/, sub {
 });
 
 my $c = CoverArtArchive::Indexer::Context->new (
-    dbh => undef,
     lwp => $ua,
     s3 => $s3,
     config => undef,

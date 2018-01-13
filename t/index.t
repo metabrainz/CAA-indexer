@@ -1,5 +1,8 @@
 use utf8;
+use Config::Tiny;
 use DBIx::Simple;
+use File::Basename qw( dirname );
+use File::Spec::Functions qw( catfile );
 use Test::More tests => 21;
 use Test::Mock::LWP::Dispatch;
 use Test::MockObject;
@@ -74,48 +77,14 @@ $ua->map (qr/mbid-aff4a693-5970-4e2e-bd46-e2ee49c22de7_mb_metadata.xml$/, sub {
     return HTTP::Response->new( 200 );
 });
 
-my $select_from_release_results = Test::MockObject->new ();
-$select_from_release_results->set_always ('hash', {
-    'artist' => 'm-flo',
-    'name' => 'the Love Bug',
-    'id' => 59662,
-    'barcode' => '4988064451180',
-    'gid' => 'aff4a693-5970-4e2e-bd46-e2ee49c22de7'
-});
+my $config = Config::Tiny->read(catfile(dirname(__FILE__), '..', 'config.ini'));
 
-my $select_from_index_listing_results = Test::MockObject->new ();
-$select_from_index_listing_results->set_list (
-    'hashes',
-     {
-         'id' => '1031598329', 'mime_type' => 'image/jpeg',
-         'release' => 59662, 'types' => [ 'Front' ],
-         'is_back' => 0, 'is_front' => 1,
-         'date_uploaded' => '2012-05-24 09:35:13.984115+02',
-         'edit' => 1, 'ordering' => 1, 'approved' => 0,
-         'edits_pending' => 0, 'comment' => '', 'suffix' => 'jpg'
-     },
-     {
-         'id' => '4644074265', 'mime_type' => 'image/png',
-         'release' => 59662, 'types' => [ 'Back' ],
-         'is_back' => 1, 'is_front' => 0,
-         'date_uploaded' => '2013-07-16 12:14:39.942118+02',
-         'edit' => 2, 'ordering' => 2, 'approved' => 0,
-         'edits_pending' => 1, 'comment' => 'ping!',  'suffix' => 'png'
-     }
-    );
-
-
-my $dbh = Test::MockObject->new ();
-$dbh->set_series ('query',
-                      $select_from_release_results,
-                      $select_from_index_listing_results
-                  );
+$config->{database} = $config->{test_database};
 
 my $c = CoverArtArchive::Indexer::Context->new (
-    dbh => $dbh,
     lwp => $ua,
     s3 => $s3,
-    config => undef,
+    config => $config,
 );
 
 my $event = CoverArtArchive::Indexer::EventHandler::Index->new (c => $c);
