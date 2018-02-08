@@ -45,6 +45,9 @@ sub handle {
                     thumbnails => {
                         small => image_url($release->{gid}, $_->{id}, 250, 'jpg'),
                         large => image_url($release->{gid}, $_->{id}, 500, 'jpg'),
+                        '250' => image_url($release->{gid}, $_->{id}, 250, 'jpg'),
+                        '500' => image_url($release->{gid}, $_->{id}, 500, 'jpg'),
+                        '1200' => image_url($release->{gid}, $_->{id}, 1200, 'jpg'),
                     },
                     approved => $_->{approved} ? Types::Serialiser::true : Types::Serialiser::false,
                     edit => $_->{edit},

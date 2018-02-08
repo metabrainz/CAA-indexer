@@ -3,7 +3,7 @@ use Config::Tiny;
 use DBIx::Simple;
 use File::Basename qw( dirname );
 use File::Spec::Functions qw( catfile );
-use Test::More tests => 21;
+use Test::More tests => 27;
 use Test::Mock::LWP::Dispatch;
 use Test::MockObject;
 use CoverArtArchive::Indexer::Context;
@@ -44,6 +44,9 @@ $ua->map (qr/index.json$/, sub {
     is ($front->{image}, "$caa_prefix/1031598329.jpg", "correct image filename");
     is ($front->{thumbnails}->{small}, "$caa_prefix/1031598329-250.jpg");
     is ($front->{thumbnails}->{large}, "$caa_prefix/1031598329-500.jpg");
+    is ($front->{thumbnails}->{'250'}, "$caa_prefix/1031598329-250.jpg");
+    is ($front->{thumbnails}->{'500'}, "$caa_prefix/1031598329-500.jpg");
+    is ($front->{thumbnails}->{'1200'}, "$caa_prefix/1031598329-1200.jpg");
 
     is_deeply ($back->{types}, [ 'Back' ]);
     is ($back->{front}, 0, "Back image is not primary front image");
@@ -53,6 +56,9 @@ $ua->map (qr/index.json$/, sub {
     is ($back->{image}, "$caa_prefix/4644074265.png", "correct image filename");
     is ($back->{thumbnails}->{small}, "$caa_prefix/4644074265-250.jpg");
     is ($back->{thumbnails}->{large}, "$caa_prefix/4644074265-500.jpg");
+    is ($back->{thumbnails}->{'250'}, "$caa_prefix/4644074265-250.jpg");
+    is ($back->{thumbnails}->{'500'}, "$caa_prefix/4644074265-500.jpg");
+    is ($back->{thumbnails}->{'1200'}, "$caa_prefix/4644074265-1200.jpg");
 
     return HTTP::Response->new( 200 );
 });
