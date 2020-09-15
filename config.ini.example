@@ -15,4 +15,4 @@ vhost = /
 [caa]
 public_key = {public key here}
 private_key = {private key here}
-
+upload_url = //{bucket}.s3.us.archive.org{file}

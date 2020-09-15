@@ -17,8 +17,11 @@ around 'http_request' => sub {
     $self->_add_auth_header( $http_headers, $method, $path )
         unless exists $headers->{Authorization};
     my $protocol = $self->s3->secure ? 'https' : 'http';
-    $path =~ m{^([^/?]+)(.*)};
-    my $uri = "$protocol://$1.s3.us.archive.org$2";
+    my ($bucket, $file) = ($path =~ m{^([^/?]+)(.*)});
+
+    my $uri = $protocol . ':' . $self->s3->{_caa_config}{upload_url};
+    $uri =~ s/\{bucket\}/$bucket/;
+    $uri =~ s/\{file\}/$file/;
 
     my $request
         = HTTP::Request->new( $method, $uri, $http_headers, $content );
