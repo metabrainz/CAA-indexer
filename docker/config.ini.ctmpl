@@ -11,7 +11,7 @@ user = {{keyOrDefault (print $svc "postgres_user") "musicbrainz"}}
 database = {{keyOrDefault (print $svc "postgres_database") "musicbrainz_db"}}
 
 [rabbitmq]
-{{- with $rabbitmq_service_name := or (env "RABBITMQ_SERVICE") "rabbitmq"}}
+{{- with $rabbitmq_service_name := print $svc "rabbitmq_service"}}
 {{- if service $rabbitmq_service_name}}
 {{- with index (service $rabbitmq_service_name) 0}}
 host = {{.Address}}
