@@ -48,7 +48,10 @@ sub handle {
 
     # Net::Amazon::S3::Request::DeleteObject does not support a headers
     # attribute, unlike the other Net::Amazon::S3::Request::* packages.
-    $req->header('x-archive-keep-old-version' => 1);
+    $req->header(
+        'x-archive-keep-old-version' => 1,
+        'x-archive-cascade-delete'   => 1,
+    );
 
     $self->c->lwp->request($req);
 }
