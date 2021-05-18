@@ -51,7 +51,7 @@ sub _build_config {
     my $opts_config = $self->opts_config;
     my $config = Config::Tiny->read($opts_config->{config});
 
-    $config->{upload_url} //= $DEFAULT_UPLOAD_URL;
+    $config->{caa}{upload_url} //= $DEFAULT_UPLOAD_URL;
 
     # Override settings from the config file with those specified on the
     # command line.
