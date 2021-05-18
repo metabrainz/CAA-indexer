@@ -27,7 +27,8 @@ sub handle {
                 'x-amz-copy-source' => "/mbid-$old_mbid/mbid-$old_mbid-$id.$suffix",
                 "x-archive-auto-make-bucket" => 1,
                 "x-archive-meta-collection" => 'coverartarchive',
-                "x-archive-meta-mediatype" => 'images',
+                "x-archive-meta-mediatype" => 'image',
+                "x-archive-meta-noindex" => 'true',
                 "x-archive-keep-old-version" => 1,
             },
             value => ''
