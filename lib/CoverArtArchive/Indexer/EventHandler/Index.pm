@@ -75,6 +75,8 @@ sub handle {
                     value   => $json,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
+                        'x-archive-meta-mediatype' => 'image',
+                        'x-archive-meta-noindex' => 'true',
                         "x-archive-auto-make-bucket" => 1,
                         "x-archive-keep-old-version" => 1,
                         'Content-Type' => 'application/json; charset=utf-8',
@@ -105,6 +107,8 @@ sub handle {
                     value   => $mb_res->content,
                     headers => {
                         'x-archive-meta-collection' => 'coverartarchive',
+                        'x-archive-meta-mediatype' => 'image',
+                        'x-archive-meta-noindex' => 'true',
                         "x-archive-auto-make-bucket" => 1,
                         'Content-Type' => 'application/xml; charset=utf-8',
                     }
